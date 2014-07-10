@@ -3,12 +3,12 @@ from Crypto.PublicKey import RSA
 import socket
 import sys
 from random import randint
-
+import errno
 	
 def get_bob_ip():
 	return '127.0.0.1'
 	
-def get_bob_port():
+def alice_get_bob_port():
 	file = open('bob/port', "r")
 	f0 = file.read() 
 	file.close()
@@ -26,20 +26,25 @@ def get_first_bit_of_string(s):
 
 #send to bob a message on a socket and waits for bob to respunse
 #the fllow then appans accourding to bobs respunse!!	
-def send2BobAndRecieve(toSend):
+def alice_send2BobAndRecieve(toSend):
 	
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	try:
-		s.connect((get_bob_ip(), get_bob_port()))
-	except ConnectionRefusedError:
-		print("Connection refused")
-		return False
+		s.connect((get_bob_ip(), alice_get_bob_port()))
+	except socket.error, v:
+		errorcode=v[0]
+		if errorcode==errno.ECONNREFUSED:
+			print "Connection Refused - problem with the socket"
+			sys.exit(1)
+		else:
+			print v[1]
+			sys.exit(1)
 		
 	s.send(toSend.encode())										#send
 	recv=str(s.recv(getReadSizeFromBuffer()).decode('utf-8', 'ignore'))	#wait for response
 	#print recv
 	if(recv =='Rb are ready'):
-		rb=load_Rb_from_bob("bob/rb")
+		rb=alice_load_Rb_from_bob("bob/rb")
 		return rb
 	elif(recv =='z0 and z1 were received'):
 		return	True
@@ -47,7 +52,7 @@ def send2BobAndRecieve(toSend):
 		
 
 #gets a files address to load rb from and returns rb	
-def load_Rb_from_bob(loadFrom0):
+def alice_load_Rb_from_bob(loadFrom0):
 	
 	file = open(loadFrom0, "r")
 	rb = file.read() 
@@ -57,7 +62,7 @@ def load_Rb_from_bob(loadFrom0):
 			
 
 #get to addresses	(saveTo0,saveTo1) and 2 keys and save the keys to the addresses
-def save_PKs(key0,saveTo0,key1,saveTo1):
+def alice_save_PKs(key0,saveTo0,key1,saveTo1):
 	
 	pubkey0=key0.publickey()
 	pubkey1=key1.publickey()
@@ -79,7 +84,7 @@ def save_PKs(key0,saveTo0,key1,saveTo1):
 	'''
 
 #get to addresses	(saveTo0,saveTo1) and 2 Zs and save the Zs to the addresses
-def save_Zs	(z0,saveTo0,z1,saveTo1):
+def alice_save_Zs	(z0,saveTo0,z1,saveTo1):
 	file = open(saveTo0, "w")
 	file.write(str(z0)) #save z0 key
 	file.close()
@@ -99,36 +104,13 @@ def randomly_choose_x0_x1():
 	return (x0,x1)
 
 #creates to RSA keys
-def createKeys():
+def alice_create_keys():
 	RSAkey0 = RSA.generate(1024)
 	RSAkey1 = RSA.generate(1024)
 	return (RSAkey0,RSAkey1)
 	
-#creates a wellcome socket	
-def create_welcome_socket():
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	if(debug):
-		print '-------------------------------------------------'
-		print ' start with socket				-'
-		print ' 	Socket created				-'
-	 
-	try:
-		s.bind((get_bob_ip(), get_bob_port()))
-	except socket.error , msg:
-		print '	Bind failed. Error Code : ' + str(msg[0]) + ' Message ' + msg[1]
-		sys.exit()
-	if(debug):	 
-		print ' 	Socket bind complete			-'
-	 
-	s.listen(10)
-	if(debug):
-		print ' 	Socket now listening			-'
-		print ' done with socket				-'
-		print '-------------------------------------------------\n'
-	 
-	return s
 	
-def initial(debug):
+def alice_initial(debug):
 	
 	if(debug):
 		print("Alice is running")
@@ -138,17 +120,17 @@ def initial(debug):
 		print '****		initial is done!!!           ****'
 		print '*************************************************\n'
 	
-def OT(x0,x1,debug):
+def alice_OT(x0,x1,debug):
 	
 ########## Alice a1#####################################################################
 	
 #a_1.1 alice chooses x0 and x1
 #a_1.2 Alice chooses two RSA key pairs, with public keys <n0, e0>, <n1,e1>
-	(key0,key1)=createKeys()
+	(key0,key1)=alice_create_keys()
 	
 #a_1.3 Alice saves in file the public keys to Bob.
 	#print("saving for bob: 2 PKs - (pub_key0,pub_key1) ...\n")
-	save_PKs(key0,"alice/public_key0",key1,"alice/public_key1")
+	alice_save_PKs(key0,"alice/public_key0",key1,"alice/public_key1")
 
 
 ####################################### Bob b1 #################################################
@@ -161,7 +143,7 @@ def OT(x0,x1,debug):
 	
 ########## Alice a2 #####################################################################
 	#a_2.1 alice gets rb from bob
-	rb= send2BobAndRecieve('PKs_are_ready')
+	rb= alice_send2BobAndRecieve('PKs_are_ready')
 	
 	#Let B be a hardcore bit of the encryption
 	
@@ -174,7 +156,7 @@ def OT(x0,x1,debug):
 		if(debug):
 			print 'printing error'
 			print e
-		send2BobAndRecieve('MSG TOO LONG ERROR')
+		alice_send2BobAndRecieve('MSG TOO LONG ERROR')
 		return False
 	
 		
@@ -215,17 +197,17 @@ def OT(x0,x1,debug):
 
 	#a_2.5 alice sends to bob (z0,z1)
 	#print("bob is being informed that z0 and z1 are ready")
-	save_Zs(z0,"alice/z0",z1,"alice/z1")
-	send2BobAndRecieve('Zs are ready')
+	alice_save_Zs(z0,"alice/z0",z1,"alice/z1")
+	alice_send2BobAndRecieve('Zs are ready')
 	return True
 	
 #this function gets x0,x1 and preforms the OT transform
 #set debug to false if you don't want any printings
 	
-def preform_OT(x0,x1,debug):
+def alice_preform_OT(x0,x1,debug):
 	res =False
 	while(res==False):
-		res=OT(x0,x1,debug)
+		res=alice_OT(x0,x1,debug)
 
 		
 	
@@ -234,16 +216,16 @@ def preform_OT(x0,x1,debug):
 	
 
 
-def main():
+def alice_main():
 	debug=False
-	initial(debug) #just a print
-	times=20
+	alice_initial(debug) #just a print
+	times=7
 
 	for i in xrange(times):
 		print 'itearation #'+str(i)
 		#a_1.1 alice chooses x0 and x1
 		x0,x1=randomly_choose_x0_x1()	#randomly - but this line can be remove
-		preform_OT(x0,x1,debug)
+		alice_preform_OT(x0,x1,debug)
 		print 'x0= '+str(x0)
 		print 'x1= '+str(x1)
 			
@@ -266,7 +248,5 @@ def main():
 
 
 if __name__ == '__main__':
-	global debug
-
-	main()
+	alice_main()
 
