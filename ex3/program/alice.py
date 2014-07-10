@@ -178,7 +178,7 @@ def OT(x0,x1):
 	print("______________________________________________")
 	print("printing r_0 and r_1:")
 	print("---------------------")
-	print("r_0:\n "+str(Bs_0))
+	print("r_0:\n"+str(Bs_0))
 	print("\nr_1:\n"+str(Bs_1))
 	print("\nend of r_0 and r_1 printing")
 	print("______________________________________________\n")

@@ -120,14 +120,14 @@ def getReadSize():
 	
 	
 #a random string uses for the transform	
-def choose_random_s():
+def choose_random_s(length=random.randint(1,120)):
+	'''s= [chr(random.choice([i for i in range(ord('A'),ord('z'))])) for r in xrange(50)] '''
+	#the string's LENGTH is a ramdom number from [1,120]!!!
+	#otherwise alice, by the PT can easyly tell what key bob use => what is the number he wants to know (x0/x1)!!!
 	
-	#s= [chr(random.choice([i for i in range(ord('A'),ord('z')           )])) for r in xrange(50)] 
-	s= [chr(random.choice([i for i in range(0,255)])) for r in xrange(10)] 
-	
+	s= [chr(random.choice([i for i in range(0,255)])) for r in xrange(length)] 
 	s=''.join(s)
 	return str(s)
-	#return "aaa helow to you"	
 
 #create r_b by the parms (s,b) of bob and the PKs from alice
 #S is enc. with the relevate key choosen by b
@@ -240,14 +240,14 @@ def OT(b,socket,debug):
 		
 
 def main():
-	debug =False
+	debug =True
 	socket=initial(debug)
 		
 	#b_1.2 bob chooses his bit b	
 	b=choose_random_b()
 
 	
-	Xb=OT(b,socket,False)
+	Xb=OT(b,socket,debug)
 	print 'x'+str(b)+'='+str(Xb)
 		
 
