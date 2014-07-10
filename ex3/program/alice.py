@@ -93,7 +93,7 @@ def save_Zs	(z0,saveTo0,z1,saveTo1):
 
 #here we can choose x0 and x1 randomly
 #this function is good for debuging
-def choose_x0_x1():
+def randomly_choose_x0_x1():
 	x0=randint(0,1)
 	x1=randint(0,1)
 	return (x0,x1)
@@ -242,7 +242,7 @@ def main():
 	for i in xrange(times):
 		print 'itearation #'+str(i)
 		#a_1.1 alice chooses x0 and x1
-		x0,x1=choose_x0_x1()	#randomly - but this line can be remove
+		x0,x1=randomly_choose_x0_x1()	#randomly - but this line can be remove
 		preform_OT(x0,x1,debug)
 		print 'x0= '+str(x0)
 		print 'x1= '+str(x1)
