@@ -171,6 +171,14 @@ def load_from_file(loadFrom0,loadFrom1,what):
 
 	return(f0,f1)
 
+
+def preform_OT(b,socket,debug):
+	res =False
+	Xb=-1
+	while (res==False):
+		Xb,res=OT(b,socket,debug)
+	return Xb	
+
 	
 def OT(b,socket,debug):
 	
@@ -226,29 +234,46 @@ def OT(b,socket,debug):
 	#now bob can calc Xb
 		
 	(alice_soc,data)=get_from_alice(socket,debug)
+
+	#error in the decription procces
+	if(data== 'MSG TOO LONG ERROR'):
+		#print 'ERROR !!!!!!!!!!!!!!!! -MSG TOO LONG '
+		send2Alice('closing sessing',alice_soc)
+		return (0,False)
+		
+	
+	
 	if(data!= 'Zs are ready'):
-		print 'ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!! PK are not ready'
+		print 'ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!! Zs are not ready'
 		sys.exit()
 		
 	send2Alice('z0 and z1 were received',alice_soc)
 	Zs=load_from_file("alice/z0","alice/z1",'Zs')
-	print str('(z0,z1) = '+str(Zs))
+	if(debug):
+		print str('(z0,z1) = '+str(Zs))
 	xb=Zs[b]-int(get_first_bit_of_string(s))
 	xb%=2
-	return xb
+	return (xb,True)
+
 
 		
 
 def main():
-	debug =True
+	debug =False
 	socket=initial(debug)
-		
-	#b_1.2 bob chooses his bit b	
-	b=choose_random_b()
 
-	
-	Xb=OT(b,socket,debug)
-	print 'x'+str(b)+'='+str(Xb)
+		
+
+	for i in xrange(10):	
+		print 'itearation #'+str(i)
+		#b_1.2 bob chooses his bit b	
+		b=choose_random_b()
+		Xb=preform_OT(b,socket,debug)
+		print 'x'+str(b)+'='+str(Xb)
+		print '-------------------------------------'
+		print ''
+		
+			
 		
 
 		

@@ -43,9 +43,7 @@ def send2BobAndRecieve(toSend):
 		return rb
 	elif(recv =='z0 and z1 were received'):
 		return	True
-	else:
-		print('ERROR!!!!!!! exiting')
-		sys.exit()
+
 		
 
 	
@@ -126,30 +124,23 @@ def create_welcome_socket():
 	 
 	return s
 	
-def initial(x0,x1):
-	print("Alice is running")
-	print("--------------------------------------------------------------------------------\n")
+def initial(debug):
 	
-	#socket= create_welcome_socket()
-
+	if(debug):
+		print("Alice is running")
+		print("--------------------------------------------------------------------------------\n")	
+		print("2 RSA keys are ready")
+		print '*************************************************'
+		print '****		initial is done!!!           ****'
+		print '*************************************************\n'
 	
-	
-	#a_1.2 Alice chooses two RSA key pairs, with public keys <n0, e0>, <n1,e1>
-	key0,key1=createKeys()
-	#(pub_key0,pub_key1) =( key0.publickey(),key1.publickey())
-	print("2 RSA keys are ready")
-	print '*************************************************'
-	print '****		initial is done!!!           ****'
-	print '*************************************************\n'
-	return (key0,key1)
-	
-def OT(x0,x1):
+def OT(x0,x1,debug):
 	
 ########## Alice a1#####################################################################
 	
 #a_1.1 alice chooses x0 and x1
 #a_1.2 Alice chooses two RSA key pairs, with public keys <n0, e0>, <n1,e1>
-	(key0,key1)=initial(x0,x1)
+	(key0,key1)=createKeys()
 	
 #a_1.3 Alice saves in file the public keys to Bob.
 	#print("saving for bob: 2 PKs - (pub_key0,pub_key1) ...\n")
@@ -171,40 +162,64 @@ def OT(x0,x1):
 	#Let B be a hardcore bit of the encryption
 	
 	#a_2.2 dec rb with both keys
-	Bs_0= key0.decrypt(rb)
-	Bs_1= key1.decrypt(rb)
+	try:
+		#sometimes we get an error saying that the msg is too large
+		Bs_0= key0.decrypt(rb)
+		Bs_1= key1.decrypt(rb)
+	except ValueError, e:
+		print e
+		if(debug):
+			print 'MSG TOO LONG ERROR '
+		send2BobAndRecieve('MSG TOO LONG ERROR')
+		return False
 	
+		
+		
+		Bs_0= key0.decrypt(rb)
+		Bs_1= key1.decrypt(rb)
+		
+		
 	
-	print("______________________________________________")
-	print("printing r_0 and r_1:")
-	print("---------------------")
-	print("r_0:\n"+str(Bs_0))
-	print("\nr_1:\n"+str(Bs_1))
-	print("\nend of r_0 and r_1 printing")
-	print("______________________________________________\n")
+	if(debug):
+		print("______________________________________________")
+		print("printing r_0 and r_1:")
+		print("---------------------")
+		print("r_0:\n"+str(Bs_0))
+		print("\nr_1:\n"+str(Bs_1))
+		print("\nend of r_0 and r_1 printing")
+		print("______________________________________________\n")
 	
 	#a_2.3 get the hardcore bit of the encryption
 	Bs_0=get_first_bit_of_string(Bs_0)
 	Bs_1=get_first_bit_of_string(Bs_1)
 	
-	print("debug mode")
-	print("(Bs_0,x0) = "+str((Bs_0,x0)))
-	print("(Bs_1,x1) = "+str((Bs_1,x1)))
+	if(debug):
+		print("(Bs_0,x0) = "+str((Bs_0,x0)))
+		print("(Bs_1,x1) = "+str((Bs_1,x1)))
 	
 	#a_2.4 Alice calcs z0, z1, where zb=xb+B(sb)
-	print("\nresults to be send to bob are:")
+		print("\nresults to be send to bob are:")
+	
 	z0= (x0+Bs_0)%2
 	z1= (x1+Bs_1)%2
 	
-	print("z0= x0+Bs_0 ="+str(z0))
-	print("z1= x1+Bs_1 ="+str(z1))
-	print("")
+	if(debug):
+		print("z0= x0+Bs_0 ="+str(z0))
+		print("z1= x1+Bs_1 ="+str(z1))
+		print("")
 	
 
 	#a_2.5 alice sends to bob (z0,z1)
 	#print("bob is being informed that z0 and z1 are ready")
 	save_Zs(z0,"alice/z0",z1,"alice/z1")
 	send2BobAndRecieve('Zs are ready')
+	return True
+	
+	
+def preform_OT(x0,x1,debug):
+	res =False
+	while(res==False):
+		res=OT(x0,x1,debug)
 
 		
 	
@@ -215,14 +230,20 @@ def OT(x0,x1):
 
 def main():
 	debug=False
+	initial(debug) #just a print
 	
-	#a_1.1 alice chooses x0 and x1
-	x0,x1=choose_x0_x1()
-		
-	OT(x0,x1)
-	print 'x0= '+str(x0)
-	print 'x1= '+str(x1)
+
+	for i in xrange(10):
+		print 'itearation #'+str(i)
+		#a_1.1 alice chooses x0 and x1
+		x0,x1=choose_x0_x1()	#randomly - but this line can be remove
+		preform_OT(x0,x1,debug)
+		print 'x0= '+str(x0)
+		print 'x1= '+str(x1)
+			
+		print '-------------------------------------'
 	
+
 
 
 
