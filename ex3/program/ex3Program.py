@@ -509,7 +509,7 @@ if __name__ == '__main__':
 		sys.exit(1) 
 	
 	if(numOfArgs>3):
-		print 'the program cannot have 3 or num args'
+		print 'the program cannot have 3 or more args'
 		print 'exiting...'
 		sys.exit(1) 
 		
@@ -524,7 +524,7 @@ if __name__ == '__main__':
 	elif(name=='alice'):
 		print 'ALICE'
 	else:
-		print 'the program 1st arg MUST be: bob / alice not'+str(name)
+		print 'the program 1st arg MUST be: bob / alice not '+str(name)
 		print 'exiting...'
 		sys.exit(1) 	
 		
