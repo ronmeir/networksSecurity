@@ -38,26 +38,30 @@ def save(data,saveTo):
 		
 	
 	
-def create_welcome_socket():
+def create_welcome_socket(debug):
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	print '-------------------------------------------------'
-	print ' start with socket				-'
-	print ' 	Socket created				-'
+	if(debug):
+		print '-------------------------------------------------'
+		print ' start with socket				-'
+		print ' 	Socket created				-'
 	 
 	#1st connection trail 
 	try:
 		port=int(get_bob_port())
-		print('	PORT:'+str(port)+'				-')
+		if(debug):
+			print('	PORT:'+str(port)+'				-')
 		s.bind((get_bob_ip(),port ))
 		save(port,'bob/port')
 	except socket.error , msg:
-		print('Bind failed, rebinding')
+		if(debug):
+			print('Bind failed, rebinding')
 		
 		#2nd connection trail 
 		try:
 			port= randint(1030,60000)
 			s.bind((get_bob_ip(), port))
-			print('	PORT:'+str(port)+'				-')
+			if(debug):
+				print('	PORT:'+str(port)+'				-')
 			save(port,'bob/port')
 			
 		except socket.error , msg:
@@ -66,7 +70,8 @@ def create_welcome_socket():
 			try:
 				port= randint(1030,60000)
 				s.bind((get_bob_ip(), port))
-				print('	PORT:'+str(port)+'				-')
+				if(debug):
+					print('	PORT:'+str(port)+'				-')
 				save(port,'bob/port')
 					
 			except socket.error , msg:
@@ -75,12 +80,14 @@ def create_welcome_socket():
 				sys.exit()
 		
 		 
-	print ' 	Socket bind complete			-'
+	if(debug):
+		print ' 	Socket bind complete			-'
 	 
 	s.listen(10)
-	print ' 	Socket now listening			-'
-	print ' done with socket				-'
-	print '-------------------------------------------------\n'
+	if(debug):
+		print ' 	Socket now listening			-'
+		print ' done with socket				-'
+		print '-------------------------------------------------\n'
 	 
 	return s
 		
@@ -92,13 +99,14 @@ def choose_random_b():
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
 	
-def get_from_alice(socket):
+def get_from_alice(socket,debug):
 	
 	#wait to accept a connection - blocking call
 	alice_socket, addr = socket.accept()
 	data = alice_socket.recv(1000)
 	
-	print '	this received from Alice:	'+data		
+	if(debug):
+		print '	this received from Alice:	'+data		
 	return (alice_socket,data)
 
 
@@ -130,13 +138,14 @@ def create_r_b(pk0,pk1,b,s):
 	else:
 		return pk1.encrypt(s, 32)[0]
 	
-def initial():
-	print("Bob is running")
-	print("--------------------------------------------------------------------------------\n")
-	print '*************************************************'
-	print '****		initial is done!!!           ****'
-	print '*************************************************\n'
-	return create_welcome_socket()
+def initial(debug):
+	if(debug):
+		print("Bob is running")
+		print("--------------------------------------------------------------------------------\n")
+		print '*************************************************'
+		print '****		initial is done!!!           ****'
+		print '*************************************************\n'
+	return create_welcome_socket(debug)
 	
 def load_from_file(loadFrom0,loadFrom1,what):
 	
@@ -163,7 +172,7 @@ def load_from_file(loadFrom0,loadFrom1,what):
 	return(f0,f1)
 
 	
-def OT(b,s,socket):
+def OT(b,socket,debug):
 	
 ########## Alice a1#####################################################################
 #a_1.1 alice chooses x0 and x1
@@ -173,16 +182,28 @@ def OT(b,s,socket):
 
 ####################################### Bob b1  #################################################
 
-
+	if(debug):
+		print '************************************************************'
+		print 'b1:'
 	#b_1.1 bob gets from alices file 	(pub_key0,pub_key1)	
-	print("getting public keys from alice:")
-	(alice_soc,data)=get_from_alice(socket)
+	if(debug):
+		print("b_1.1:	getting public keys from alice:")
+	(alice_soc,data)=get_from_alice(socket,debug)
 	if(data== 'PKs_are_ready'):
 		(pub_key0,pub_key1)=load_from_file("alice/public_key0","alice/public_key1",'PKs')
 	else:
-		print 'ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!! PK are not ready'
+		print 'ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!! PK are not ready\n'
 		sys.exit()
+	if(debug):	
+		print 'b_1.2:	b='+str(b) + '  => x'+str(b)+'=?'	
 	
+
+	#b_1.3 bob chooses random plaintext s 	
+	s=choose_random_s()
+	if(debug):
+		print 'b_1.3:	the random text bob choose is:'
+		print s
+		print '************************************************************'
 
 	
 	#b_1.4 bob  sends rb=Enc_b[s] to Alice	- 	rb=s^eb mod nb	
@@ -204,7 +225,7 @@ def OT(b,s,socket):
 	
 	#now bob can calc Xb
 		
-	(alice_soc,data)=get_from_alice(socket)
+	(alice_soc,data)=get_from_alice(socket,debug)
 	if(data!= 'Zs are ready'):
 		print 'ERROR !!!!!!!!!!!!!!!!!!!!!!!!!!!! PK are not ready'
 		sys.exit()
@@ -219,15 +240,14 @@ def OT(b,s,socket):
 		
 
 def main():
-	socket=initial()
+	debug =False
+	socket=initial(debug)
 		
 	#b_1.2 bob chooses his bit b	
 	b=choose_random_b()
 
-	#b_1.3 bob chooses random plaintext s 	
-	s=choose_random_s()
 	
-	Xb=OT(b,s,socket)
+	Xb=OT(b,socket,False)
 	print 'x'+str(b)+'='+str(Xb)
 		
 
