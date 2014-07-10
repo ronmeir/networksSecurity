@@ -14,19 +14,19 @@ def get_bob_port():
 	file.close()
 	return int(f0)
 	
+#returns how much to read from the socker buffer	
+def getReadSizeFromBuffer():
+	return 1000	
 	
-def getReadSize():
-	return 8192	
 	
-
-		
-	
-
+#gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
 	
+
+#send to bob a message on a socket and waits for bob to respunse
+#the fllow then appans accourding to bobs respunse!!	
 def send2BobAndRecieve(toSend):
-	
 	
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	try:
@@ -36,7 +36,7 @@ def send2BobAndRecieve(toSend):
 		return False
 		
 	s.send(toSend.encode())										#send
-	recv=str(s.recv(getReadSize()).decode('utf-8', 'ignore'))	#wait for response
+	recv=str(s.recv(getReadSizeFromBuffer()).decode('utf-8', 'ignore'))	#wait for response
 	#print recv
 	if(recv =='Rb are ready'):
 		rb=load_Rb_from_bob("bob/rb")
@@ -46,17 +46,17 @@ def send2BobAndRecieve(toSend):
 
 		
 
-	
+#gets a files address to load rb from and returns rb	
 def load_Rb_from_bob(loadFrom0):
 	
 	file = open(loadFrom0, "r")
 	rb = file.read() 
 	file.close()
 	
-	
 	return rb
 			
-	
+
+#get to addresses	(saveTo0,saveTo1) and 2 keys and save the keys to the addresses
 def save_PKs(key0,saveTo0,key1,saveTo1):
 	
 	pubkey0=key0.publickey()
@@ -78,6 +78,7 @@ def save_PKs(key0,saveTo0,key1,saveTo1):
 	print pubkey1.exportKey()	
 	'''
 
+#get to addresses	(saveTo0,saveTo1) and 2 Zs and save the Zs to the addresses
 def save_Zs	(z0,saveTo0,z1,saveTo1):
 	file = open(saveTo0, "w")
 	file.write(str(z0)) #save z0 key
@@ -90,17 +91,20 @@ def save_Zs	(z0,saveTo0,z1,saveTo1):
 	
 
 
-
+#here we can choose x0 and x1 randomly
+#this function is good for debuging
 def choose_x0_x1():
 	x0=randint(0,1)
 	x1=randint(0,1)
 	return (x0,x1)
 
+#creates to RSA keys
 def createKeys():
 	RSAkey0 = RSA.generate(1024)
 	RSAkey1 = RSA.generate(1024)
 	return (RSAkey0,RSAkey1)
 	
+#creates a wellcome socket	
 def create_welcome_socket():
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	if(debug):
@@ -167,9 +171,9 @@ def OT(x0,x1,debug):
 		Bs_0= key0.decrypt(rb)
 		Bs_1= key1.decrypt(rb)
 	except ValueError, e:
-		print e
 		if(debug):
-			print 'MSG TOO LONG ERROR '
+			print 'printing error'
+			print e
 		send2BobAndRecieve('MSG TOO LONG ERROR')
 		return False
 	
@@ -215,6 +219,8 @@ def OT(x0,x1,debug):
 	send2BobAndRecieve('Zs are ready')
 	return True
 	
+#this function gets x0,x1 and preforms the OT transform
+#set debug to false if you don't want any printings
 	
 def preform_OT(x0,x1,debug):
 	res =False
@@ -231,9 +237,9 @@ def preform_OT(x0,x1,debug):
 def main():
 	debug=False
 	initial(debug) #just a print
-	
+	times=20
 
-	for i in xrange(10):
+	for i in xrange(times):
 		print 'itearation #'+str(i)
 		#a_1.1 alice chooses x0 and x1
 		x0,x1=choose_x0_x1()	#randomly - but this line can be remove
