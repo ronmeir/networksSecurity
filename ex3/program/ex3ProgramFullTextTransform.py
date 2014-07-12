@@ -195,6 +195,9 @@ def alice_OT(x0,x1,debug):
 	z1= (x1+Bs_1)%2
 	'''
 	
+	print 'in OT build a xor function between to strings'
+	print 'zo and z1 need to be defined by this xor fuction @ line +/- 200' 
+	
 	#use this part if you want to send all x1 and x0 data 
 	
 	
@@ -352,6 +355,7 @@ def choose_random_s(length=random.randint(1,120)):
 	s=''.join(s)
 	'''
 	s='hellow to you'
+	print 'fix the choose random s fuction!!!!!!!'
 	return str(s)
 
 #create r_b by the parms (s,b) of bob and the PKs from alice
