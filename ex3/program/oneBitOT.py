@@ -61,6 +61,9 @@ def alice_load_Rb_from_bob(loadFrom0):
 	file.close()
 	
 	return rb
+	
+def set_num_of_times():
+	return 5	
 			
 
 #get to addresses	(saveTo0,saveTo1) and 2 keys and save the keys to the addresses
@@ -214,7 +217,7 @@ def alice_preform_OT(x0,x1,debug):
 
 def alice_main(debug):
 	alice_initial(debug) #just a print
-	times=7
+	times=set_num_of_times()
 
 	for i in xrange(times):
 		print 'itearation #'+str(i)
@@ -482,7 +485,7 @@ def bob_OT(b,socket,debug):
 
 def bob_main(debug):
 	socket=bob_initial(debug)
-	times=7
+	times=set_num_of_times()
 
 
 	for i in xrange(times):	
@@ -491,14 +494,15 @@ def bob_main(debug):
 		b=choose_random_b()
 		Xb=bob_preform_OT(b,socket,debug)
 		print 'x'+str(b)+'='+str(Xb)
-		print '-------------------------------------'
 		print ''
+		print '-------------------------------------'
 		
 
 	
 
 
 if __name__ == '__main__':
+
 
 	debug=False
 	numOfArgs=len(sys.argv)
@@ -537,9 +541,17 @@ if __name__ == '__main__':
 		debug= (((listOfArgs[2].split(","))[0]).split("'"))[1]
 		debug= (debug=='debug')
 		
+	print('')
+	print('')
+
+		
 	if(name=='bob'):
+		print('bob is running....')
+		print('------------------------------------------------------------------------------')	
 		bob_main(debug)
 	elif(name=='alice'):
+		print('alice is running....')
+		print('------------------------------------------------------------------------------')	
 		alice_main(debug)
 	else:
 		print 'error happand'

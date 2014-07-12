@@ -103,6 +103,8 @@ def alice_save_Zs	(z0,saveTo0,z1,saveTo1):
 def randomly_choose_x0_x1():
 	x0=randint(0,1)
 	x1=randint(0,1)
+	
+	return ('this is x0','this is x1')
 	return (x0,x1)
 
 #creates to RSA keys
@@ -178,8 +180,8 @@ def alice_OT(x0,x1,debug):
 		print("______________________________________________\n")
 	
 	#a_2.3 get the hardcore bit of the encryption
-	Bs_0=get_first_bit_of_string(Bs_0)
-	Bs_1=get_first_bit_of_string(Bs_1)
+	#Bs_0=get_first_bit_of_string(Bs_0)
+	#Bs_1=get_first_bit_of_string(Bs_1)
 	
 	if(debug):
 		print("(Bs_0,x0) = "+str((Bs_0,x0)))
@@ -188,8 +190,14 @@ def alice_OT(x0,x1,debug):
 	#a_2.4 Alice calcs z0, z1, where zb=xb+B(sb)
 		print("\nresults to be send to bob are:")
 	
+	''' use this part if you want ot send only 1st bit of x1 and x0!!!!
 	z0= (x0+Bs_0)%2
 	z1= (x1+Bs_1)%2
+	'''
+	
+	#use this part if you want to send all x1 and x0 data 
+	
+	
 	
 	if(debug):
 		print("z0= x0+Bs_0 ="+str(z0))
@@ -214,7 +222,7 @@ def alice_preform_OT(x0,x1,debug):
 
 def alice_main(debug):
 	alice_initial(debug) #just a print
-	times=7
+	times=1
 
 	for i in xrange(times):
 		print 'itearation #'+str(i)
@@ -335,12 +343,15 @@ def bob_send2Alice(toSend,alice_socket):
 	
 #returns a random string to be used for the transform	
 def choose_random_s(length=random.randint(1,120)):
-	'''s= [chr(random.choice([i for i in range(ord('A'),ord('z'))])) for r in xrange(50)] '''
+	'''
+		#s= [chr(random.choice([i for i in range(ord('A'),ord('z'))])) for r in xrange(50)] 
 	#the string's LENGTH is a ramdom number from [1,120]!!!
 	#otherwise alice, by the PT can easyly tell what key bob use => what is the number he wants to know (x0/x1)!!!
 	
 	s= [chr(random.choice([i for i in range(0,255)])) for r in xrange(length)] 
 	s=''.join(s)
+	'''
+	s='hellow to you'
 	return str(s)
 
 #create r_b by the parms (s,b) of bob and the PKs from alice
@@ -473,8 +484,9 @@ def bob_OT(b,socket,debug):
 	if(debug):
 		print str('(z0,z1) = '+str(Zs))
 		
-	xb=Zs[b]-int(get_first_bit_of_string(s))
-	xb%=2
+	#xb=Zs[b]-int(get_first_bit_of_string(s))
+	#xb%=2
+	xb=Zs[b]+s
 	return (xb,True)
 
 
@@ -482,7 +494,7 @@ def bob_OT(b,socket,debug):
 
 def bob_main(debug):
 	socket=bob_initial(debug)
-	times=7
+	times=1
 
 
 	for i in xrange(times):	
@@ -518,14 +530,12 @@ if __name__ == '__main__':
 	listOfArgs=str(sys.argv)
 	listOfArgs=listOfArgs.split(",")
 	name=((listOfArgs[1].split(","))[0]).split("'")[1]
-	'''
+	
 	if(name=='bob'):
 		print 'BOB'
 	elif(name=='alice'):
 		print 'ALICE'
-		'''
-	
-	if(name!='bob' and name!='alice'):
+	else:
 		print 'the program 1st arg MUST be: bob / alice not '+str(name)
 		print 'exiting...'
 		sys.exit(1) 	
