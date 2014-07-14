@@ -20,12 +20,17 @@ def alice_get_bob_port():
 def getReadSizeFromBuffer():
 	return 1000	
 	
-	
+def get_num_of_running_times():
+	return int(7)	
 #gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
-	
 
+#gets 2 string s1 and s2 and returns the xored string	
+#the return value will be in the length of min(leng(s1),len(s2))!!!!
+def xor_2_strings(s1,s2):
+	return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
+	
 #send to bob a message on a socket and waits for bob to respunse
 #the fllow then appans accourding to bobs respunse!!	
 def alice_send2BobAndRecieve(toSend):
@@ -100,17 +105,20 @@ def alice_save_Zs	(z0,saveTo0,z1,saveTo1):
 
 #here we can choose x0 and x1 randomly
 #this function is good for debuging
-def randomly_choose_x0_x1():
-	x0=randint(0,1)
-	x1=randint(0,1)
+def randomly_choose_x0_x1(b=0):
+	if(b==1):
+		x0=randint(0,1)
+		x1=randint(0,1)
+	x0=choose_random_s()
+	x1=choose_random_s()
 	
-	return ('this is x0','this is x1')
-	return (x0,x1)
+	return (str(x0),str(x1))
+	#return (str('heloow')+str(x0),str(x1)+str('oooooooooo'))
 
 #creates to RSA keys
 def alice_create_keys():
-	RSAkey0 = RSA.generate(1024)
-	RSAkey1 = RSA.generate(1024)
+	RSAkey0 = RSA.generate(256*6)
+	RSAkey1 = RSA.generate(256*6)
 	return (RSAkey0,RSAkey1)
 	
 	
@@ -195,16 +203,13 @@ def alice_OT(x0,x1,debug):
 	z1= (x1+Bs_1)%2
 	'''
 	
-	print 'in OT build a xor function between to strings'
-	print 'zo and z1 need to be defined by this xor fuction @ line +/- 200' 
-	
 	#use this part if you want to send all x1 and x0 data 
-	
-	
+	z0=xor_2_strings(x0,Bs_0)
+	z1=xor_2_strings(x1,Bs_1)
 	
 	if(debug):
-		print("z0= x0+Bs_0 ="+str(z0))
-		print("z1= x1+Bs_1 ="+str(z1))
+		print("z0= x0+Bs_0 ="+z0)
+		print("z1= x1+Bs_1 ="+z1)
 		print("")
 	
 
@@ -225,7 +230,7 @@ def alice_preform_OT(x0,x1,debug):
 
 def alice_main(debug):
 	alice_initial(debug) #just a print
-	times=1
+	times=int(get_num_of_running_times())
 
 	for i in xrange(times):
 		print 'itearation #'+str(i)
@@ -345,17 +350,15 @@ def bob_send2Alice(toSend,alice_socket):
 	
 	
 #returns a random string to be used for the transform	
-def choose_random_s(length=random.randint(1,120)):
-	'''
-		#s= [chr(random.choice([i for i in range(ord('A'),ord('z'))])) for r in xrange(50)] 
+def choose_random_s(length=random.randint(150,150)):
+	
+	#s= [chr(random.choice([i for i in range(ord('A'),ord('z'))])) for r in xrange(50)] 
 	#the string's LENGTH is a ramdom number from [1,120]!!!
 	#otherwise alice, by the PT can easyly tell what key bob use => what is the number he wants to know (x0/x1)!!!
 	
 	s= [chr(random.choice([i for i in range(0,255)])) for r in xrange(length)] 
 	s=''.join(s)
-	'''
-	s='hellow to you'
-	print 'fix the choose random s fuction!!!!!!!'
+
 	return str(s)
 
 #create r_b by the parms (s,b) of bob and the PKs from alice
@@ -397,8 +400,8 @@ def bob_load_from_file(loadFrom0,loadFrom1,what):
 		f1= RSA.importKey(f1)
 		
 	elif(what=='Zs'):	
-		f0= int(f0)
-		f1= int(f1)
+		f0= f0
+		f1= f1
 
 	return(f0,f1)
 
@@ -490,7 +493,8 @@ def bob_OT(b,socket,debug):
 		
 	#xb=Zs[b]-int(get_first_bit_of_string(s))
 	#xb%=2
-	xb=Zs[b]+s
+	#xb=Zs[b]+s
+	xb=xor_2_strings(Zs[b],s)
 	return (xb,True)
 
 
@@ -498,7 +502,7 @@ def bob_OT(b,socket,debug):
 
 def bob_main(debug):
 	socket=bob_initial(debug)
-	times=1
+	times=int(get_num_of_running_times())
 
 
 	for i in xrange(times):	
@@ -536,9 +540,9 @@ if __name__ == '__main__':
 	name=((listOfArgs[1].split(","))[0]).split("'")[1]
 	
 	if(name=='bob'):
-		print 'BOB'
+		print 'BOB\n'
 	elif(name=='alice'):
-		print 'ALICE'
+		print 'ALICE\n'
 	else:
 		print 'the program 1st arg MUST be: bob / alice not '+str(name)
 		print 'exiting...'
