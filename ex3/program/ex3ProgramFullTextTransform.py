@@ -31,6 +31,8 @@ def get_first_bit_of_string(s):
 def xor_2_strings(s1,s2):
 	return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
 	
+
+	
 #send to bob a message on a socket and waits for bob to respunse
 #the fllow then appans accourding to bobs respunse!!	
 def alice_send2BobAndRecieve(toSend):
@@ -100,20 +102,20 @@ def alice_save_Zs	(z0,saveTo0,z1,saveTo1):
 	file.write(str(z1)) #save z1 key
 	file.close()
 
-	
-
-
 #here we can choose x0 and x1 randomly
 #this function is good for debuging
 def randomly_choose_x0_x1(b=0):
-	if(b==1):
+	if(b==1):#insert b=1 for 1 bit transform
 		x0=randint(0,1)
 		x1=randint(0,1)
-	x0=choose_random_s()
-	x1=choose_random_s()
+		
+	else:#otherwise random strings with random sizes a generated 	
+		x0=choose_random_s()
+		x1=choose_random_s()
 	
 	return (str(x0),str(x1))
-	#return (str('heloow')+str(x0),str(x1)+str('oooooooooo'))
+
+
 
 #creates to RSA keys
 def alice_create_keys():
@@ -235,7 +237,7 @@ def alice_main(debug):
 	for i in xrange(times):
 		print 'itearation #'+str(i)
 		#a_1.1 alice chooses x0 and x1
-		x0,x1=randomly_choose_x0_x1()	#randomly - but this line can be remove
+		x0,x1=randomly_choose_x0_x1()	#x0 x1 are choosen randomly - but this line can be removed
 		alice_preform_OT(x0,x1,debug)
 		print 'x0= '+str(x0)
 		print 'x1= '+str(x1)
@@ -350,7 +352,7 @@ def bob_send2Alice(toSend,alice_socket):
 	
 	
 #returns a random string to be used for the transform	
-def choose_random_s(length=random.randint(150,150)):
+def choose_random_s(length=random.randint(7,150)):
 	
 	#s= [chr(random.choice([i for i in range(ord('A'),ord('z'))])) for r in xrange(50)] 
 	#the string's LENGTH is a ramdom number from [1,120]!!!
