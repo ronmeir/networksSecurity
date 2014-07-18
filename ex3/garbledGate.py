@@ -109,6 +109,7 @@ class garbled_gate:
 	def get_x(self):
 		return self.x
 	
+	#returns the relevat kx acording to the x value
 	def get_THE_x_key(self):
 		if(self.x==-1):
 			raise Exception("gate MUST contain the x val!  use :set_x(X={0,1}) to fix it")
@@ -131,6 +132,7 @@ class garbled_gate:
 		random.shuffle(vec)
 		return vec 	
 
+	#gets a vector to decrypt and  keys=(kx,ky) and decrtypt thewhole vector
 	def dec_vector(self,kx,ky,vec):
 		return [OTP(ky,OTP(kx,i))for i in vec]
 
