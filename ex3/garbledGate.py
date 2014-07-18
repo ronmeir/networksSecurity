@@ -39,20 +39,34 @@ def OTP(k,pt):
 
 
 class garbled_gate:
-	def __init__(self,gateType,X=-1):
+	def __init__(self,gateType,X=-1,Z0=-1,Z1=-1):
+		if(not(X==0 or X==1 or X==-1)):
+			raise Exception("x MUST be from {{0,1} U None} not:"+str(X))
+		
+		if(not(gateType=='xor' or gateType=='and')):
+			raise Exception("gate type must be:{"+str('xor')+str('and'))
+			
+		
+		self.gate_vec=[]														#vec[i+j]=Ek_i_x[Ek_j_y[k_z(i,j)]]
+		
 		(self.K0_x,self.K1_x)=(create_OTP_key(),create_OTP_key())				# (k0x,k1x)
 		(self.K0_y,self.K1_y)=(create_OTP_key(),create_OTP_key())				# (k0Y,k1Y)
 		(self.K0_z,self.K1_z)=(create_OTP_key(),create_OTP_key())				# (k0Z,k1Z)
 		
-		self.x=X																# set x= {X,-1}={{1,0},-1}
+		#this helps in debuging!!
+		if(Z0!=-1 and Z1!=-1):
+			(self.K0_z,self.K1_z)=(Z0,Z1)
 		
-		#ENC_Zs_with_y0= (OTP(self.K0_y,'yo_ko') ,OTP(self.K0_y,'yo_k1') ) 		# delete
-		#ENC_Zs_with_y1= (OTP(self.K1_y,'y1_ko') ,OTP(self.K1_y,'y1_k1') ) 		# delete
+		
+		self.x=X																# set x= {X,-1}={{1,0},-1}
 		
 		ENC_Zs_with_y0= (OTP(self.K0_y,self.K0_z),OTP(self.K0_y,self.K1_z))		# (Ek0y[k0z] , Ek0y[k1z])
 		ENC_Zs_with_y1= (OTP(self.K1_y,self.K0_z),OTP(self.K1_y,self.K1_z))		# (Ek1y[k0z] , Ek1y[k1z])
+		#test:ENC_Zs_with_y0= (OTP(self.K0_y,'yo_ko') ,OTP(self.K0_y,'yo_k1') ) # delete it
+		#test:ENC_Zs_with_y1= (OTP(self.K1_y,'y1_ko') ,OTP(self.K1_y,'y1_k1') )	# delete it	
 		
-		self.enc_vec=[]
+		
+		
 		
 		#construct a XOR gate										# 						XOR(X,Y):							
 		if(gateType=='xor'):										#				  		X	Y	Z
@@ -61,13 +75,11 @@ class garbled_gate:
 			self.Ek1x_Ek0y_k0z=OTP(self.K1_x,ENC_Zs_with_y0[0])		# Ek1x[Ek0y[k0z]]		1	0	0
 			self.Ek1x_Ek1y_k0z=OTP(self.K1_x,ENC_Zs_with_y1[1])		# Ek1x[Ek1y[k1z]]		1	1	1
 			
-			self.enc_vec= [self.Ek0x_Ek0y_k1z , self.Ek0x_Ek1y_k0z , self.Ek1x_Ek0y_k0z , self.Ek1x_Ek1y_k0z]
+			 #vec[i+j]=Ek_i_x[Ekjy[k_z(i,j)]]
+			self.gate_vec= [self.Ek0x_Ek0y_k1z , self.Ek0x_Ek1y_k0z , self.Ek1x_Ek0y_k0z , self.Ek1x_Ek1y_k0z]
 			
 		
-				
 			
-			
-		
 		#construct an AND gate										#						AND(X,Y):
 		elif(gateType=='and'):										#				   		X	Y	Z
 			self.Ek0x_Ek0y_k0z=OTP(self.K0_x,ENC_Zs_with_y0[0])		# Ek0x[Ek0y[k0z]]		0	0	0
@@ -75,10 +87,11 @@ class garbled_gate:
 			self.Ek1x_Ek0y_k0z=OTP(self.K1_x,ENC_Zs_with_y0[0])		# Ek1x[Ek0y[k0z]]		1	0	0
 			self.Ek1x_Ek1y_k0z=OTP(self.K1_x,ENC_Zs_with_y1[1])		# Ek1x[Ek1y[k1z]]		1	1	1
 		
-			self.enc_vec=[self.Ek0x_Ek0y_k0z , self.Ek0x_Ek1y_k0z , self.Ek1x_Ek0y_k0z , self.Ek1x_Ek1y_k0z]
+			 #vec[i+j]=Ek_i_x[Ekjy[k_z(i,j)]]
+			self.gate_vec=[self.Ek0x_Ek0y_k0z , self.Ek0x_Ek1y_k0z , self.Ek1x_Ek0y_k0z , self.Ek1x_Ek1y_k0z]
 		
 		
-	def get__private_keys(self,whatKey):
+	def get_keys(self,whatKey):
 		if(whatKey=='x'):
 			return (self.K0_x,self.K1_x)	
 		
@@ -86,22 +99,46 @@ class garbled_gate:
 			return (self.K0_y,self.K1_y)	
 		
 		elif(whatKey=='z'):
-			return (self.K0_z,self.K1_z)	
-		
+			return (self.K0_z,self.K1_z)		
 	def set_x(self,X):
-		self.x=X
-	def get_x():
+		if(X== 0 or X==1):
+			self.x=X
+		else:
+			print self.x	
+			raise Exception("x MUST be from {0,1}")			
+	def get_x(self):
 		return self.x
+	
+	def get_THE_x_key(self):
+		if(self.x==-1):
+			raise Exception("gate MUST contain the x val!  use :set_x(X={0,1}) to fix it")
+		else:
+			return self.get_keys('x')[self.x] 
 		
-		
+	
+	
+	#return the gate's output s.t vec[i+j]=Ek_i_x[Ekjy[k_z(i,j)]]
+	def get_gate_output_vec(self):
+		if(self.x==-1):
+			raise Exception("gate MUST contain the x val!  use :set_x(X={0,1}) to fix it")
+		else:
+			return 	self.gate_vec
+					
+	#return the garbles gate's output - we can send it to the other side
+	def get_garbled_output_vec(self):
+		vec= self.get_gate_output_vec()
+		vec=list(vec)
+		random.shuffle(vec)
+		return vec 	
 
-			
-
+	def dec_vector(self,kx,ky,vec):
+		return [OTP(ky,OTP(kx,i))for i in vec]
 
 def main():
 	
-	gate=garbled_gate('xor')
+
 	
+
 	return 0
 
 if __name__ == '__main__':
