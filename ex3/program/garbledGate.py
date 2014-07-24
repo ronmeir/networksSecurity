@@ -138,7 +138,7 @@ class garbled_gate:
 		
 	#all the keys start with "true-" so we can know it the key is ok or not	
 	def get_output_from_decrypted_vector(self,vec):
-		ans= [vec[i] for i in xrange(len(vec)) if vec[i].startswith("true-")]
+		ans= [vec[i] for i in xrange(len(vec)) if (vec[i].startswith("true -")or vec[i].startswith("false-") or vec[i].startswith("value-"))]
 		return ans
 		
 	def get_key_length(self):

@@ -141,7 +141,7 @@ def randomly_choose_x0_x1(b=-1):
 		x1=choose_random_s(b)
 			
 	
-	return (str("true-")+str(x0),str("true-")+str(x1))
+	return (str("value-")+str(x0),str("value-")+str(x1))
 	
 
 
@@ -286,28 +286,34 @@ def alice_main(debug):
 	times=int(get_num_of_running_times())
 	print 'gate kind: '+gateKind
 	print '+++++++++++++++++++++++++++++++'
-
+	vec=[]
+	printingVec=[]
 	for i in xrange(times):
-		print 'itearation #'+str(i)
+		#print 'itearation #'+str(i)
 		#a_1.1 alice chooses x0 and x1
 	
 		#alice chooses her gate input
 		a=choose_random_b()
 		
 		#gate output  choosen randomly - but this line can be remov
-		#z0,z1=randomly_choose_x0_x1(get_key_length()-len('true-'))
+		(z0,z1)=randomly_choose_x0_x1(get_key_length()-len('true -'))
+		vec.append((a,z0,z1))
+		printingVec.append('i='+str(i)+':	'+'a='+str(a)+'	 z0='+str(z0)+' 	 z1='+str(z1))
 		
 		
 		
-		z0,z1='true-'+str('0000'),'true-'+str('1111')
-		print 'z0= '+str(z0)
-		print 'z1= '+str(z1)
+		#z0,z1='false-'+str('0000'),'true -'+str('1111')
+		#print 'z0= '+str(z0)
+		#print 'z1= '+str(z1)
 		
 		alice_use_gate(gateKind,a,z0,z1)
 
-		print "a="+str(a)
+		#print "a="+str(a)
 
-		print '-------------------------------------'
+		#print '-------------------------------------'
+		
+	for i in printingVec:
+		print i
 	
 
 
@@ -592,18 +598,26 @@ def bob_main(debug=False):
 	socket=bob_initial(debug)
 	gate=garbled_gate(gateKind,0)
 	times=int(get_num_of_running_times())
+	vec=[]
+	printingVec=[]
 	print 'gate kind: '+gateKind
 	print '+++++++++++++++++++++++++++++++'
 
 	for i in xrange(times):	
-		print 'itearation #'+str(i)
+		#print 'itearation #'+str(i)
 		b=choose_random_b()
 		ans=bob_use_gate(socket,gate,b)
-		print("ans= "+str(ans))
-		print ''
-		print ('b='+str(b))
-		print '-------------------------------------'
-
+		#print("ans= "+str(ans))
+		#print ''
+		#print ('b='+str(b))
+		#print '-------------------------------------'
+		printingVec.append('i='+str(i)+':	'+'b='+str(b)+'	 ans='+str(ans))
+		vec.append((b,ans))
+	
+	for i in printingVec:
+		print i	
+		
+		
 		
 	#	k_y=bob_preform_OT(b,socket,debug)
 	#	#print 'Ky'+str(b)+'='+str(k_y)+str(b)
