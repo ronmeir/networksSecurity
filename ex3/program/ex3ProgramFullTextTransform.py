@@ -5,6 +5,9 @@ import sys
 import random
 from random import randint
 import errno
+from garbledGate import garbled_gate 
+import pickle
+import operator
 
 	
 def get_bob_ip():
@@ -21,7 +24,7 @@ def getReadSizeFromBuffer():
 	return 1000	
 	
 def get_num_of_running_times():
-	return int(7)	
+	return int(4)	
 #gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
@@ -31,6 +34,27 @@ def get_first_bit_of_string(s):
 def xor_2_strings(s1,s2):
 	return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
 	
+
+
+def bob_find_if_2_bits_are_the_same(bobsBit,socket):
+		#1 get garbeled gate vector from alice
+		#2 preform OT on bobs bit
+		#3 dec vector and take relevant output
+		#4 by the output we can diside if both bits r the same or not
+		
+		gate=garbled_gate('xor')				#gate is needed for its dec function
+		
+		vec= load_enc_gate_vactor('./vec.txt')	#1
+		key_x=vec[0]							#get k_x key
+		del vec[0]								#removes the key from the vector
+		key_y=bob_preform_OT(bobsBit,socket)	#get k_y key
+		
+		vec=gate.dec_vector(key_x,key_y,vec)	#decypt vector
+		return gate.get_output_from_decrypted_vector(v)
+		
+
+def get_key_length():
+	return 14
 
 	
 #send to bob a message on a socket and waits for bob to respunse
@@ -104,16 +128,21 @@ def alice_save_Zs	(z0,saveTo0,z1,saveTo1):
 
 #here we can choose x0 and x1 randomly
 #this function is good for debuging
-def randomly_choose_x0_x1(b=0):
+def randomly_choose_x0_x1(b=-1):
 	if(b==1):#insert b=1 for 1 bit transform
 		x0=randint(0,1)
 		x1=randint(0,1)
 		
-	else:#otherwise random strings with random sizes a generated 	
+	elif(b==-1):#otherwise random strings with random sizes a generated 	
 		x0=choose_random_s()
 		x1=choose_random_s()
+	else:
+		x0=choose_random_s(b)
+		x1=choose_random_s(b)
+			
 	
-	return (str(x0),str(x1))
+	return (str("true-")+str(x0),str("true-")+str(x1))
+	
 
 
 
@@ -224,24 +253,125 @@ def alice_OT(x0,x1,debug):
 #this function gets x0,x1 and preforms the OT transform
 #set debug to false if you don't want any printings
 	
-def alice_preform_OT(x0,x1,debug):
+def alice_preform_OT(x0,x1,debug=False):
 	res =False
 	while(res==False):
 		res=alice_OT(x0,x1,debug)
+		
+def alice_use_gate(gateKind,aliceBit,z0,z1):
+	a=aliceBit
+	
+	gate=garbled_gate(gateKind,Z0=z0,Z1=z1)
+	gate.set_x(a)
+	xKey=gate.get_THE_x_key()
+	(k0y,k1y)=gate.get_keys('y')
+	
+	#alice sends her gate content and Kx to bob
+	vec=gate.get_garbled_output_vec()
+	vec.append(xKey)
+	
+	
+	#print "saved vector:\n"+str(vec)
+	save_enc_gate_vactor(vec,'./vec.txt')
+	
+	#send the relevant y-key
+	alice_preform_OT(k0y,k1y)
+	
+
 
 
 def alice_main(debug):
+	gateKind='xor'
 	alice_initial(debug) #just a print
 	times=int(get_num_of_running_times())
+	print 'gate kind: '+gateKind
+	print '+++++++++++++++++++++++++++++++'
 
 	for i in xrange(times):
 		print 'itearation #'+str(i)
 		#a_1.1 alice chooses x0 and x1
-		x0,x1=randomly_choose_x0_x1()	#x0 x1 are choosen randomly - but this line can be removed
-		alice_preform_OT(x0,x1,debug)
-		print 'x0= '+str(x0)
-		print 'x1= '+str(x1)
-			
+	
+		#alice chooses her gate input
+		a=choose_random_b()
+		
+		#gate output  choosen randomly - but this line can be remov
+		#z0,z1=randomly_choose_x0_x1(get_key_length()-len('true-'))
+		z0,z1='true-'+str(0),'true-'+str(1)
+		print 'z0= '+str(z0)
+		print 'z1= '+str(z1)
+		
+		alice_use_gate(gateKind,a,z0,z1)
+		
+#		gate=garbled_gate('xor',Z0=z0,Z1=z1)
+#		gate.set_x(a)
+#		xKey=gate.get_THE_x_key()
+#		(k0y,k1y)=gate.get_keys('y')
+		
+		#alice sends her gate content and Kx to bob
+#		vec=gate.get_garbled_output_vec()
+#		vec.append(xKey)
+		
+		#print "saved vector:\n"+str(vec)
+#		save_enc_gate_vactor(vec,'./vec.txt')
+		
+	
+		
+		'''
+		k_x=vec[-1]
+		vec=vec[0:-1]
+		vec=gate.dec_vector(k_x,(k0y,k1y)[1],vec)
+		print 'k'+str(x)+'='+str(k_x)
+		'''
+		
+	
+		
+	
+		
+		#print(str(xKey),len(xKey))
+		#print ''
+		#print '(k0y,k1y) = '+str((k0y,k1y))
+#		alice_preform_OT(k0y,k1y)
+
+		
+		'''
+		#gate 
+		#z0,z1=randomly_choose_x0_x1()
+		z0,z1="true-"+str(0),"true-"+str(1)
+		print((z0,z1))		
+	
+		x=1
+		gate=garbled_gate('xor',Z0=z0,Z1=z1)
+		gate.set_x(x)
+		xKey=gate.get_THE_x_key()
+		(k0y,k1y)=gate.get_keys('y')
+		print("(k0y,k1y)"+str((str(k0y),str(k1y))))
+		vec=gate.get_garbled_output_vec()
+		vec=vec.append(xKey)
+		print "saved vector:\n"+str(vec)
+		save_enc_gate_vactor(vec,'./vec.txt')
+		
+		vec = load_enc_gate_vactor('./vec.txt')
+		k_x=vec[-1]
+		vec=vec[0:-1]
+		vec=gate.dec_vector(k_x,(k0y,k1y)[1],vec)
+		print 'k'+str(x)+'='+str(k_x)
+		
+		
+		#print vec
+		#print ''
+		#print gate.dec_vector(xKey,k1y,vec)
+		
+		
+		print gate.dec_vector(x,k0y,vec)
+		print '-------------------------------------'
+		print gate.dec_vector(x,k1y,vec)
+		alice_preform_OT(k0y,k1y,debug)
+				print('x='+str(x))
+
+		
+		'''
+		print "a="+str(a)
+
 		print '-------------------------------------'
 	
 
@@ -265,9 +395,22 @@ def bob_get_bob_port():
 	
 def save(data,saveTo):
 	
-	file = open(saveTo, "w")
+	file = open(saveTo, "wb")
 	file.write(str(data)) #save exported PK_0 key
 	file.close()
+	
+def save_enc_gate_vactor(vec,fullPath):
+	f = open(fullPath, "wb")
+	pickle.dump(vec,f)          
+	f.close()	
+
+def load_enc_gate_vactor(fullPath):
+	f = open(fullPath, "rb")
+	vec=pickle.load(f)          
+	f.close()	
+	return vec	
+	
+	
 		
 	
 	
@@ -351,17 +494,15 @@ def bob_send2Alice(toSend,alice_socket):
 	alice_socket.send(toSend)
 	
 	
-#returns a random string to be used for the transform	
-def choose_random_s(length=random.randint(7,150)):
+#returns a random string to be used for the transform
+def choose_random_s(length=random.randint(12,150)):
 	
-	#s= [chr(random.choice([i for i in range(ord('A'),ord('z'))])) for r in xrange(50)] 
-	#the string's LENGTH is a ramdom number from [1,120]!!!
 	#otherwise alice, by the PT can easyly tell what key bob use => what is the number he wants to know (x0/x1)!!!
-	
-	s= [chr(random.choice([i for i in range(0,255)])) for r in xrange(length)] 
-	s=''.join(s)
+	#s=''.join(chr(random.randint(ord('0'),ord('z'))) for _ in range(length))
+	s=''.join(chr(random.randint(0,255)) for _ in range(length))
+	s=bytes(s)
 
-	return str(s)
+	return s
 
 #create r_b by the parms (s,b) of bob and the PKs from alice
 #S is enc. with the relevate key choosen by b
@@ -386,14 +527,14 @@ def bob_initial(debug):
 #returns the conntent to the files as a tuple
 def bob_load_from_file(loadFrom0,loadFrom1,what):
 	
-	file = open(loadFrom0, "r")
+	file = open(loadFrom0, "rb")
 	f0 = file.read() 
 	file.close()
 	
 	if(what=='port'):
 		return f0
 	
-	file = open(loadFrom1, "r")
+	file = open(loadFrom1, "rb")
 	f1 = file.read() 
 	file.close()
 	
@@ -409,10 +550,10 @@ def bob_load_from_file(loadFrom0,loadFrom1,what):
 
 
 #this function gets a what bit b =(0,1) , a wellcome socket and 'debug flag'
-#when xb is what we want to learn from bob (x0/x1)
+#when xb is what we want to learn from alice (x0/x1)
 #and preforms the transform
 #set debug = false if you don't want any printings!!
-def bob_preform_OT(b,socket,debug):
+def bob_preform_OT(b,socket,debug=False):
 	res =False
 	Xb=-1
 	while (res==False):
@@ -447,7 +588,7 @@ def bob_OT(b,socket,debug):
 	
 
 	#b_1.3 bob chooses random plaintext s 	
-	s=choose_random_s()
+	s=str(choose_random_s())
 	if(debug):
 		print 'b_1.3:	the random text bob choose is:'
 		print s
@@ -499,22 +640,54 @@ def bob_OT(b,socket,debug):
 	xb=xor_2_strings(Zs[b],s)
 	return (xb,True)
 
-
+def bob_use_gate(socket,emptyGate,bobsBit,debug=False):
+	b=bobsBit
+	k_y=bob_preform_OT(b,socket,debug)
+	vec= load_enc_gate_vactor('./vec.txt')
+	k_x=vec[-1]
+	ans=vec[0:-1]
+	ans=emptyGate.dec_vector(k_x,k_y,ans)
+	ans=emptyGate.get_output_from_decrypted_vector(ans)
+	ans=ans[0]
+	return ans
 		
 
-def bob_main(debug):
+def bob_main(debug=False):
+	gateKind='xor'
 	socket=bob_initial(debug)
+	gate=garbled_gate(gateKind,0)
 	times=int(get_num_of_running_times())
-
+	print 'gate kind: '+gateKind
+	print '+++++++++++++++++++++++++++++++'
 
 	for i in xrange(times):	
 		print 'itearation #'+str(i)
-		#b_1.2 bob chooses his bit b	
 		b=choose_random_b()
-		Xb=bob_preform_OT(b,socket,debug)
-		print 'x'+str(b)+'='+str(Xb)
-		print '-------------------------------------'
+		ans=bob_use_gate(socket,gate,b)
+		print("ans= "+str(ans))
 		print ''
+		print ('b='+str(b))
+		print '-------------------------------------'
+
+		
+	#	k_y=bob_preform_OT(b,socket,debug)
+	#	#print 'Ky'+str(b)+'='+str(k_y)+str(b)
+	#	print ''
+		
+	#	#bob gets from alice gate content and Kx to bob
+	
+	#	vec= load_enc_gate_vactor('./vec.txt')
+	#	#print "loaded vector\n"+str(vec)
+		
+	#	k_x=vec[-1]
+	#	ans=vec[0:-1]
+	#	ans=gate.dec_vector(k_x,k_y,ans)
+	#	ans=gate.get_output_from_decrypted_vector(ans)
+	#	ans=ans[0]
+	#	print("ans= "+str(ans))
+	#	print ('b='+str(b))
+	#	print '-------------------------------------'
+		
 		
 
 	
