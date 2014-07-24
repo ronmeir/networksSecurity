@@ -296,80 +296,15 @@ def alice_main(debug):
 		
 		#gate output  choosen randomly - but this line can be remov
 		#z0,z1=randomly_choose_x0_x1(get_key_length()-len('true-'))
-		z0,z1='true-'+str(0),'true-'+str(1)
+		
+		
+		
+		z0,z1='true-'+str('0000'),'true-'+str('1111')
 		print 'z0= '+str(z0)
 		print 'z1= '+str(z1)
 		
 		alice_use_gate(gateKind,a,z0,z1)
-		
-#		gate=garbled_gate('xor',Z0=z0,Z1=z1)
-#		gate.set_x(a)
-#		xKey=gate.get_THE_x_key()
-#		(k0y,k1y)=gate.get_keys('y')
-		
-		#alice sends her gate content and Kx to bob
-#		vec=gate.get_garbled_output_vec()
-#		vec.append(xKey)
-		
-		#print "saved vector:\n"+str(vec)
-#		save_enc_gate_vactor(vec,'./vec.txt')
-		
-	
-		
-		'''
-		k_x=vec[-1]
-		vec=vec[0:-1]
-		vec=gate.dec_vector(k_x,(k0y,k1y)[1],vec)
-		print 'k'+str(x)+'='+str(k_x)
-		'''
-		
-	
-		
-	
-		
-		#print(str(xKey),len(xKey))
-		#print ''
-		#print '(k0y,k1y) = '+str((k0y,k1y))
-#		alice_preform_OT(k0y,k1y)
 
-		
-		'''
-		#gate 
-		#z0,z1=randomly_choose_x0_x1()
-		z0,z1="true-"+str(0),"true-"+str(1)
-		print((z0,z1))		
-	
-		x=1
-		gate=garbled_gate('xor',Z0=z0,Z1=z1)
-		gate.set_x(x)
-		xKey=gate.get_THE_x_key()
-		(k0y,k1y)=gate.get_keys('y')
-		print("(k0y,k1y)"+str((str(k0y),str(k1y))))
-		vec=gate.get_garbled_output_vec()
-		vec=vec.append(xKey)
-		print "saved vector:\n"+str(vec)
-		save_enc_gate_vactor(vec,'./vec.txt')
-		
-		vec = load_enc_gate_vactor('./vec.txt')
-		k_x=vec[-1]
-		vec=vec[0:-1]
-		vec=gate.dec_vector(k_x,(k0y,k1y)[1],vec)
-		print 'k'+str(x)+'='+str(k_x)
-		
-		
-		#print vec
-		#print ''
-		#print gate.dec_vector(xKey,k1y,vec)
-		
-		
-		print gate.dec_vector(x,k0y,vec)
-		print '-------------------------------------'
-		print gate.dec_vector(x,k1y,vec)
-		alice_preform_OT(k0y,k1y,debug)
-				print('x='+str(x))
-
-		
-		'''
 		print "a="+str(a)
 
 		print '-------------------------------------'
