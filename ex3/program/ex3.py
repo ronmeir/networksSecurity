@@ -287,7 +287,13 @@ def alice_use_gate(gateKind,aliceBit,z0,z1,gate=None,pathToSave=None):
 	alice_preform_OT(k0y,k1y)
 	
 #def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
-def alice_are_2_bits_the_same(a0,a1,z00,z01,z10,z11):
+def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
+	a0=a_s[0]
+	a1=a_s[1]
+	z00=z0_s[0]
+	z01=z0_s[1]
+	z10=z1_s[0]
+	z11=z1_s[1]
 	'''
 	andGateKx_s=[]
 	andGateKy_s=[]
@@ -342,10 +348,11 @@ def alice_are_2_bits_the_same(a0,a1,z00,z01,z10,z11):
 def alice_main(debug):
 	a0=1
 	a1=1
-	(z00,z01)=randomly_choose_x0_x1(get_key_length()-len('true -'))
-	(z10,z11)=randomly_choose_x0_x1(get_key_length()-len('true -'))
-	print ('a_0= '+str(a0)+';	a_1= '+str(a1))
-	alice_are_2_bits_the_same(a0,a1,z00,z01,z10,z11)
+	a=(a0,a1)
+	z0=randomly_choose_x0_x1(get_key_length()-len('true -'))
+	z1=randomly_choose_x0_x1(get_key_length()-len('true -'))
+	print ('a=('+str(a0)+','+str(a1))+')'
+	alice_are_2_bits_the_same(a,z0,z1)
 	print ''
 		
 
@@ -687,7 +694,7 @@ def bob_are_2_bits_the_same(socket,b0,b1):
 	gateKind='xor'
 	b=(b0,b1)
 	vec=[]
-	gate=garbled_gate(gateKind,0)
+	gate=garbled_gate(gateKind,0) 
 
 	for i in xrange(2):
 		ans=bob_use_gate(socket,gate,b[i],pathToLoad='./alice/vec'+str(i)+'.txt')
@@ -737,7 +744,7 @@ def bob_main(debug=False):
 	print ans[0][0:-1]
 	'''
 	(b0,b1)=(choose_random_b(),choose_random_b())
-	print ('b_0= '+str(b0)+';	b_1= '+str(b1))
+	print ('b= ('+str(b0)+','+str(b1))+')'
 	ans=bob_are_2_bits_the_same(socket,b0,b1)
 	print 'ans = '+str(ans)
 	
