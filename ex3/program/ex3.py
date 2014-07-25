@@ -272,6 +272,7 @@ def alice_use_gate(gateKind,aliceBit,z0,z1,gate=None,pathToSave=None):
 	
 #def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
+	z=(z0_s,z1_s)
 	'''
 	andGateKx_s=[]
 	andGateKy_s=[]
@@ -296,23 +297,25 @@ def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 
 	
 	
-	gateXor1=garbled_gate('xor',Z0=z0_s[0],Z1=z0_s[1])
+	#gateXor1=garbled_gate('xor',Z0=z0_s[0],Z1=z0_s[1])
+	gateXor1=garbled_gate('xor',Z0=z[0][0],Z1=z[0][1])
 	gateXor1.set_x(a_s[0])
 	
-	gateXor2=garbled_gate('xor',Z0=z1_s[0],Z1=z1_s[1])
+	#gateXor2=garbled_gate('xor',Z0=z1_s[0],Z1=z1_s[1])
+	gateXor2=garbled_gate('xor',Z0=z[1][0],Z1=z[1][1])
 	gateXor2.set_x(a_s[1])
 	
 	#AND-gate inputs
-	and_Kx=(z0_s[0][len('true -'):-1] ,z0_s[1][len('true -'):-1]  )
-	and_Ky=(z1_s[0][len('true -'):-1] ,z1_s[1][len('true -'):-1]  )
+	and_Kx=(z[0][0][len('true -'):-1] ,z[0][1][len('true -'):-1]  )
+	and_Ky=(z[1][0][len('true -'):-1] ,z[1][1][len('true -'):-1]  )
 	
 	#create the AND-gate
 	andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=and_Kx,Ky=and_Ky)
 	toSaveVec=andGate.get_garbled_output_vec()
 	save_enc_gate_vactor(toSaveVec,'./alice/gate12.txt')
 	
-	alice_use_gate('xor',a_s[0],z0_s[0],z0_s[1],gateXor1,'./alice/vec0.txt')
-	alice_use_gate('xor',a_s[1],z1_s[0],z1_s[1],gateXor2,'./alice/vec1.txt')
+	alice_use_gate('xor',a_s[0],z[0][0],z[0][1],gateXor1,'./alice/vec0.txt')
+	alice_use_gate('xor',a_s[1],z[1][0],z[1][1],gateXor2,'./alice/vec1.txt')
 	
 	
 
