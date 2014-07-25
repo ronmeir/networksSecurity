@@ -39,7 +39,7 @@ def OTP(k,pt):
 
 
 class garbled_gate:
-	def __init__(self,gateType,X=-1,Z0=-1,Z1=-1):
+	def __init__(self,gateType,X=-1,Z0=-1,Z1=-1,Kx=None,Ky=None):
 		if(not(X==0 or X==1 or X==-1)):
 			raise Exception("x MUST be from {{0,1} U None} not:"+str(X))
 		
@@ -53,6 +53,13 @@ class garbled_gate:
 		(self.K0_y,self.K1_y)=(create_OTP_key(),create_OTP_key())				# (k0Y,k1Y)
 		(self.K0_z,self.K1_z)=(create_OTP_key(),create_OTP_key())				# (k0Z,k1Z)
 		
+		if(Ky!=None):
+			(self.K0_y,self.K1_y)=(Ky[0],Ky[1])
+		
+		if(Kx!=None):
+			(self.K0_x,self.K1_x)=(Kx[0],Kx[1])
+			
+		
 		#this helps in debuging!!
 		if(Z0!=-1 and Z1!=-1):
 			(self.K0_z,self.K1_z)=(Z0,Z1)
@@ -62,9 +69,6 @@ class garbled_gate:
 		
 		ENC_Zs_with_y0= (OTP(self.K0_y,self.K0_z),OTP(self.K0_y,self.K1_z))		# (Ek0y[k0z] , Ek0y[k1z])
 		ENC_Zs_with_y1= (OTP(self.K1_y,self.K0_z),OTP(self.K1_y,self.K1_z))		# (Ek1y[k0z] , Ek1y[k1z])
-		#test:ENC_Zs_with_y0= (OTP(self.K0_y,'yo_ko') ,OTP(self.K0_y,'yo_k1') ) # delete it
-		#test:ENC_Zs_with_y1= (OTP(self.K1_y,'y1_ko') ,OTP(self.K1_y,'y1_k1') )	# delete it	
-		
 		
 		
 		
@@ -78,6 +82,7 @@ class garbled_gate:
 			 #vec[i+j]=Ek_i_x[Ekjy[k_z(i,j)]]
 			self.gate_vec= [self.Ek0x_Ek0y_k1z , self.Ek0x_Ek1y_k0z , self.Ek1x_Ek0y_k0z , self.Ek1x_Ek1y_k0z]
 			
+			
 		
 			
 		#construct an AND gate										#						AND(X,Y):
@@ -89,6 +94,8 @@ class garbled_gate:
 		
 			 #vec[i+j]=Ek_i_x[Ekjy[k_z(i,j)]]
 			self.gate_vec=[self.Ek0x_Ek0y_k0z , self.Ek0x_Ek1y_k0z , self.Ek1x_Ek0y_k0z , self.Ek1x_Ek1y_k0z]
+		
+		
 		
 		
 	def get_keys(self,whatKey):
@@ -120,9 +127,6 @@ class garbled_gate:
 	
 	#return the gate's output s.t vec[i+j]=Ek_i_x[Ekjy[k_z(i,j)]]
 	def get_gate_output_vec(self):
-		if(self.x==-1):
-			raise Exception("gate MUST contain the x val!  use :set_x(X={0,1}) to fix it")
-		else:
 			return 	self.gate_vec
 					
 	#return the garbles gate's output - we can send it to the other side

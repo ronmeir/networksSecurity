@@ -8,6 +8,7 @@ import errno
 from garbledGate import garbled_gate 
 import pickle
 import operator
+import time
 
 	
 def get_bob_ip():
@@ -24,7 +25,7 @@ def getReadSizeFromBuffer():
 	return 1000	
 	
 def get_num_of_running_times():
-	return int(4)	
+	return 2	
 #gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
@@ -54,7 +55,7 @@ def bob_find_if_2_bits_are_the_same(bobsBit,socket):
 		
 
 def get_key_length():
-	return 14
+	return 60
 
 	
 #send to bob a message on a socket and waits for bob to respunse
@@ -258,34 +259,102 @@ def alice_preform_OT(x0,x1,debug=False):
 	while(res==False):
 		res=alice_OT(x0,x1,debug)
 		
-def alice_use_gate(gateKind,aliceBit,z0,z1):
-	a=aliceBit
-	
-	gate=garbled_gate(gateKind,Z0=z0,Z1=z1)
-	gate.set_x(a)
-	xKey=gate.get_THE_x_key()
-	(k0y,k1y)=gate.get_keys('y')
+def alice_use_gate(gateKind,aliceBit,z0,z1,gate=None,pathToSave=None):
+	#this gate was not entered - build one
+	if (gate==None):
+		a=aliceBit
+		gate=garbled_gate(gateKind,Z0=z0,Z1=z1)
+		gate.set_x(a)
+		
+		
+	#use the gate	
 	
 	#alice sends her gate content and Kx to bob
+	xKey=gate.get_THE_x_key()
+	(k0y,k1y)=gate.get_keys('y')
 	vec=gate.get_garbled_output_vec()
 	vec.append(xKey)
 	
 	
 	#print "saved vector:\n"+str(vec)
-	save_enc_gate_vactor(vec,'./vec.txt')
+	if(pathToSave==None):
+		save_enc_gate_vactor(vec,'./vec.txt')
+	else:
+		save_enc_gate_vactor(vec,pathToSave)
+			
 	
 	#send the relevant y-key
 	alice_preform_OT(k0y,k1y)
+	
+#def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
+def alice_are_2_bits_the_same(a0,a1,z00,z01,z10,z11):
+	'''
+	andGateKx_s=[]
+	andGateKy_s=[]
+	gateXor=[]
+	for i in xrange(2):
+		tmp=garbled_gate('xor',Z0=z0_s[i],Z1=z1_s[i])
+		tmp.set_x(a_s[i])
+		gateXor.append(tmp)
+		
+		
+		#AND-gate inputs
+		andGateKx_s.append( z0_s[i][len('true -'):-1]  )
+		andGateKy_s.append( z1_s[i][len('true -'):-1]  )
+		
+	andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=andGateKx_s,Ky=andGateKy_s)
+	toSaveVec=andGate.get_garbled_output_vec()
+	save_enc_gate_vactor(toSaveVec,'./alice/gate12.txt')
+	
+	for i in xrange(2):
+		alice_use_gate('xor',a_s[i],z0_s[i],z1_s[i],gateXor[i],'./alice/vec'+str(i)+'.txt')
+	'''
+
+	
+	
+	gateXor1=garbled_gate('xor',Z0=z00,Z1=z01)
+	gateXor1.set_x(a0)
+	
+	gateXor2=garbled_gate('xor',Z0=z10,Z1=z11)
+	gateXor2.set_x(a1)
+	
+	#AND-gate inputs
+	and_Kx=(z00[len('true -'):-1] ,z01[len('true -'):-1]  )
+	and_Ky=(z10[len('true -'):-1] ,z11[len('true -'):-1]  )
+	
+	#create the AND-gate
+	andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=and_Kx,Ky=and_Ky)
+	toSaveVec=andGate.get_garbled_output_vec()
+	save_enc_gate_vactor(toSaveVec,'./alice/gate12.txt')
+	
+	alice_use_gate('xor',a0,z00,z01,gateXor1,'./alice/vec0.txt')
+	alice_use_gate('xor',a1,z10,z11,gateXor2,'./alice/vec1.txt')
+	
+	
+
+
+
+	
 	
 
 
 
 def alice_main(debug):
+	a0=1
+	a1=1
+	(z00,z01)=randomly_choose_x0_x1(get_key_length()-len('true -'))
+	(z10,z11)=randomly_choose_x0_x1(get_key_length()-len('true -'))
+	print ('a_0= '+str(a0)+';	a_1= '+str(a1))
+	alice_are_2_bits_the_same(a0,a1,z00,z01,z10,z11)
+	print ''
+		
+
+	'''
 	gateKind='xor'
 	alice_initial(debug) #just a print
 	times=int(get_num_of_running_times())
 	print 'gate kind: '+gateKind
-	print '+++++++++++++++++++++++++++++++'
+	print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 	vec=[]
 	printingVec=[]
 	for i in xrange(times):
@@ -314,8 +383,26 @@ def alice_main(debug):
 		
 	for i in printingVec:
 		print i
+	#the 6 first chars are remove because they CONST :{'true -','false-','value-'}	
+	kx=(vec[0][1][6:-1],vec[0][2][6:-1])	
+	ky=(vec[1][1][6:-1],vec[1][2][6:-1])
+	gate1=garbled_gate('and',Z0='false-',Z1='true -',Kx=kx,Ky=ky)
 	
-
+	toSaveVec=gate1.get_garbled_output_vec()
+	
+	#now check if it works
+	#print gate1.dec_vector(kx[0],ky[0],toSaveVec)#00
+	#print gate1.dec_vector(kx[0],ky[1],toSaveVec)#01
+	#print gate1.dec_vector(kx[1],ky[0],toSaveVec)#10
+	#print gate1.dec_vector(kx[1],ky[1],toSaveVec)#11
+	
+	save_enc_gate_vactor(toSaveVec,'./gate12.txt')
+	print toSaveVec
+	'''
+	
+	
+	
+	
 
 def bob_get_bob_port():
 	s= str(bob_load_from_file("bob/port","bob/port",'port'))
@@ -581,32 +668,56 @@ def bob_OT(b,socket,debug):
 	xb=xor_2_strings(Zs[b],s)
 	return (xb,True)
 
-def bob_use_gate(socket,emptyGate,bobsBit,debug=False):
+def bob_use_gate(socket,emptyGate,bobsBit,debug=False,pathToLoad=None):
 	b=bobsBit
 	k_y=bob_preform_OT(b,socket,debug)
-	vec= load_enc_gate_vactor('./vec.txt')
+	if(pathToLoad==None):
+		vec= load_enc_gate_vactor('./vec.txt')
+	else:
+		vec= load_enc_gate_vactor(pathToLoad)
 	k_x=vec[-1]
 	ans=vec[0:-1]
 	ans=emptyGate.dec_vector(k_x,k_y,ans)
 	ans=emptyGate.get_output_from_decrypted_vector(ans)
 	ans=ans[0]
 	return ans
+			
+			
+def bob_are_2_bits_the_same(socket,b0,b1):
+	gateKind='xor'
+	b=(b0,b1)
+	vec=[]
+	gate=garbled_gate(gateKind,0)
+
+	for i in xrange(2):
+		ans=bob_use_gate(socket,gate,b[i],pathToLoad='./alice/vec'+str(i)+'.txt')
+		#vec.append((b[i],ans))
+		vec.append(ans)
+		
+	gate12=load_enc_gate_vactor('./alice/gate12.txt')
+	ans= gate.dec_vector(vec[0][6:-1],vec[1][6:-1],gate12)
+	ans=gate.get_output_from_decrypted_vector(ans)
+	ans=ans[0][0:-1]
+	return ans	
+			
+			
 		
 
 def bob_main(debug=False):
-	gateKind='xor'
 	socket=bob_initial(debug)
+	'''
+	gateKind='xor'
 	gate=garbled_gate(gateKind,0)
 	times=int(get_num_of_running_times())
 	vec=[]
 	printingVec=[]
 	print 'gate kind: '+gateKind
-	print '+++++++++++++++++++++++++++++++'
+	print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
 
 	for i in xrange(times):	
 		#print 'itearation #'+str(i)
 		b=choose_random_b()
-		ans=bob_use_gate(socket,gate,b)
+		ans=bob_use_gate(socket,gate,b,pathToLoad='./alice/vec'+str(i)+'.txt')
 		#print("ans= "+str(ans))
 		#print ''
 		#print ('b='+str(b))
@@ -616,8 +727,20 @@ def bob_main(debug=False):
 	
 	for i in printingVec:
 		print i	
-		
-		
+	gate12=load_enc_gate_vactor('./alice/gate12.txt')
+	#print gate12	
+	#print ((vec[0][1]),vec[1][1])
+	
+	#decrypt the whole vector
+	ans= gate.dec_vector(vec[0][1][6:-1],vec[1][1][6:-1],gate12)
+	ans=gate.get_output_from_decrypted_vector(ans)
+	print ans[0][0:-1]
+	'''
+	(b0,b1)=(choose_random_b(),choose_random_b())
+	print ('b_0= '+str(b0)+';	b_1= '+str(b1))
+	ans=bob_are_2_bits_the_same(socket,b0,b1)
+	print 'ans = '+str(ans)
+	
 		
 	#	k_y=bob_preform_OT(b,socket,debug)
 	#	#print 'Ky'+str(b)+'='+str(k_y)+str(b)
@@ -686,9 +809,7 @@ if __name__ == '__main__':
 	else:
 		print 'error happand'
 		
+	print '--------------------------------END MAIN-----------------------------------'	
 		
-	
 		
-
-	#print listOfArgs[2]
 
