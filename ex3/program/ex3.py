@@ -37,22 +37,6 @@ def xor_2_strings(s1,s2):
 	
 
 
-def bob_find_if_2_bits_are_the_same(bobsBit,socket):
-		#1 get garbeled gate vector from alice
-		#2 preform OT on bobs bit
-		#3 dec vector and take relevant output
-		#4 by the output we can diside if both bits r the same or not
-		
-		gate=garbled_gate('xor')				#gate is needed for its dec function
-		
-		vec= load_enc_gate_vactor('./vec.txt')	#1
-		key_x=vec[0]							#get k_x key
-		del vec[0]								#removes the key from the vector
-		key_y=bob_preform_OT(bobsBit,socket)	#get k_y key
-		
-		vec=gate.dec_vector(key_x,key_y,vec)	#decypt vector
-		return gate.get_output_from_decrypted_vector(v)
-		
 
 def get_key_length():
 	return 60
@@ -288,12 +272,6 @@ def alice_use_gate(gateKind,aliceBit,z0,z1,gate=None,pathToSave=None):
 	
 #def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
-	a0=a_s[0]
-	a1=a_s[1]
-	z00=z0_s[0]
-	z01=z0_s[1]
-	z10=z1_s[0]
-	z11=z1_s[1]
 	'''
 	andGateKx_s=[]
 	andGateKy_s=[]
@@ -318,23 +296,23 @@ def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 
 	
 	
-	gateXor1=garbled_gate('xor',Z0=z00,Z1=z01)
-	gateXor1.set_x(a0)
+	gateXor1=garbled_gate('xor',Z0=z0_s[0],Z1=z0_s[1])
+	gateXor1.set_x(a_s[0])
 	
-	gateXor2=garbled_gate('xor',Z0=z10,Z1=z11)
-	gateXor2.set_x(a1)
+	gateXor2=garbled_gate('xor',Z0=z1_s[0],Z1=z1_s[1])
+	gateXor2.set_x(a_s[1])
 	
 	#AND-gate inputs
-	and_Kx=(z00[len('true -'):-1] ,z01[len('true -'):-1]  )
-	and_Ky=(z10[len('true -'):-1] ,z11[len('true -'):-1]  )
+	and_Kx=(z0_s[0][len('true -'):-1] ,z0_s[1][len('true -'):-1]  )
+	and_Ky=(z1_s[0][len('true -'):-1] ,z1_s[1][len('true -'):-1]  )
 	
 	#create the AND-gate
 	andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=and_Kx,Ky=and_Ky)
 	toSaveVec=andGate.get_garbled_output_vec()
 	save_enc_gate_vactor(toSaveVec,'./alice/gate12.txt')
 	
-	alice_use_gate('xor',a0,z00,z01,gateXor1,'./alice/vec0.txt')
-	alice_use_gate('xor',a1,z10,z11,gateXor2,'./alice/vec1.txt')
+	alice_use_gate('xor',a_s[0],z0_s[0],z0_s[1],gateXor1,'./alice/vec0.txt')
+	alice_use_gate('xor',a_s[1],z1_s[0],z1_s[1],gateXor2,'./alice/vec1.txt')
 	
 	
 
