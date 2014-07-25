@@ -510,12 +510,12 @@ def bob_send2Alice(toSend,alice_socket):
 	
 	
 #returns a random string to be used for the transform
-def choose_random_s(length=random.randint(12,150)):
+def choose_random_s(length=random.randint(40,150)):
 	
 	#otherwise alice, by the PT can easyly tell what key bob use => what is the number he wants to know (x0/x1)!!!
 	#s=''.join(chr(random.randint(ord('0'),ord('z'))) for _ in range(length))
 	s=''.join(chr(random.randint(0,255)) for _ in range(length))
-	s=bytes(s)
+	#s=bytes(s)
 
 	return s
 
