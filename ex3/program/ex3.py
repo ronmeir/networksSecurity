@@ -25,7 +25,7 @@ def getReadSizeFromBuffer():
 	return 1000	
 	
 def get_num_of_running_times():
-	return 2	
+	return 200	
 #gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
@@ -273,30 +273,30 @@ def alice_use_gate(gateKind,aliceBit,z0,z1,gate=None,pathToSave=None):
 #def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 	z=(z0_s,z1_s)
-	'''
+	
 	andGateKx_s=[]
 	andGateKy_s=[]
 	gateXor=[]
 	for i in xrange(2):
-		tmp=garbled_gate('xor',Z0=z0_s[i],Z1=z1_s[i])
+		tmp=garbled_gate('xor',Z0=z[i][0],Z1=z[i][1])
 		tmp.set_x(a_s[i])
 		gateXor.append(tmp)
 		
-		
+
 		#AND-gate inputs
-		andGateKx_s.append( z0_s[i][len('true -'):-1]  )
-		andGateKy_s.append( z1_s[i][len('true -'):-1]  )
-		
+		andGateKx_s.append( z[0][i][len('true -'):-1]  )
+		andGateKy_s.append( z[1][i][len('true -'):-1]  )
+	
 	andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=andGateKx_s,Ky=andGateKy_s)
 	toSaveVec=andGate.get_garbled_output_vec()
 	save_enc_gate_vactor(toSaveVec,'./alice/gate12.txt')
-	
+	'''
 	for i in xrange(2):
 		alice_use_gate('xor',a_s[i],z0_s[i],z1_s[i],gateXor[i],'./alice/vec'+str(i)+'.txt')
 	'''
 
 	
-	
+	'''
 	#gateXor1=garbled_gate('xor',Z0=z0_s[0],Z1=z0_s[1])
 	gateXor1=garbled_gate('xor',Z0=z[0][0],Z1=z[0][1])
 	gateXor1.set_x(a_s[0])
@@ -313,9 +313,9 @@ def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 	andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=and_Kx,Ky=and_Ky)
 	toSaveVec=andGate.get_garbled_output_vec()
 	save_enc_gate_vactor(toSaveVec,'./alice/gate12.txt')
-	
-	alice_use_gate('xor',a_s[0],z[0][0],z[0][1],gateXor1,'./alice/vec0.txt')
-	alice_use_gate('xor',a_s[1],z[1][0],z[1][1],gateXor2,'./alice/vec1.txt')
+	'''
+	alice_use_gate('xor',a_s[0],z[0][0],z[0][1],gateXor[0],'./alice/vec0.txt')
+	alice_use_gate('xor',a_s[1],z[1][0],z[1][1],gateXor[1],'./alice/vec1.txt')
 	
 	
 
@@ -327,8 +327,7 @@ def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 
 
 def alice_main(debug):
-	a0=1
-	a1=1
+	(a0,a1)=(choose_random_b(),choose_random_b())
 	a=(a0,a1)
 	z0=randomly_choose_x0_x1(get_key_length()-len('true -'))
 	z1=randomly_choose_x0_x1(get_key_length()-len('true -'))
@@ -790,14 +789,16 @@ if __name__ == '__main__':
 		debug= (((listOfArgs[2].split(","))[0]).split("'"))[1]
 		debug= (debug=='debug')
 		
-	if(name=='bob'):
-		bob_main(debug)
-	elif(name=='alice'):
-		alice_main(debug)
-	else:
-		print 'error happand'
-		
-	print '--------------------------------END MAIN-----------------------------------'	
+	for i in xrange(get_num_of_running_times()):	
+		print '---------------------------------------< '+str(i)+' >--------------------------------------'	
+
+		if(name=='bob'):
+			bob_main(debug)
+		elif(name=='alice'):
+			alice_main(debug)
+		else:
+			print 'error happand'
+			
 		
 		
 
