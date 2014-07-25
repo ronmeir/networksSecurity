@@ -1,0 +1,9 @@
+1	alice and bob create vecAlice, vecBob N-size-{0,1} vector
+2	ask_bob= [1,2,...,N]
+3	bob -> alice :{ask_bob}
+4	for each i in ask_bob:
+		alice->bob: {vecAlice[i]}
+5	for each i bob got:
+		ask_bob.remove(i)
+6	while len(ask_bob)>0
+		go back to (3)	 

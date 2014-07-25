@@ -25,7 +25,7 @@ def getReadSizeFromBuffer():
 	return 1000	
 	
 def get_num_of_running_times():
-	return 200	
+	return 1000	
 #gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
@@ -666,7 +666,12 @@ def bob_use_gate(socket,emptyGate,bobsBit,debug=False,pathToLoad=None):
 	ans=vec[0:-1]
 	ans=emptyGate.dec_vector(k_x,k_y,ans)
 	ans=emptyGate.get_output_from_decrypted_vector(ans)
-	ans=ans[0]
+	try:
+		ans=ans[0]
+	except IndexError,e:
+		print bllllllllllllllllllllllllllllllllll
+		sys.exit(1) 
+		
 	return ans
 			
 			
@@ -790,7 +795,7 @@ if __name__ == '__main__':
 		debug= (debug=='debug')
 		
 	for i in xrange(get_num_of_running_times()):	
-		print '---------------------------------------< '+str(i)+' >--------------------------------------'	
+		print '--------------------------------------< '+str(i)+' >-------------------------------------'	
 
 		if(name=='bob'):
 			bob_main(debug)
