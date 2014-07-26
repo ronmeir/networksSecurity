@@ -25,7 +25,11 @@ def getReadSizeFromBuffer():
 	return 1000	
 	
 def get_num_of_running_times():
-	return 1000	
+	return 128	
+
+def get_num_of_running_times_of_mini_times():
+	return 16
+					
 #gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
 	return (ord(s[0]))%2
@@ -327,14 +331,50 @@ def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 
 
 def alice_main(debug):
-	(a0,a1)=(choose_random_b(),choose_random_b())
-	a=(a0,a1)
-	z0=randomly_choose_x0_x1(get_key_length()-len('true -'))
-	z1=randomly_choose_x0_x1(get_key_length()-len('true -'))
-	print ('a=('+str(a0)+','+str(a1))+')'
-	alice_are_2_bits_the_same(a,z0,z1)
-	print ''
+	times= get_num_of_running_times()
+	miniTimes=miniTimes=get_num_of_running_times_of_mini_times()
+	loops=times/miniTimes
+	bitsTuples= [(choose_random_b(),choose_random_b()) for i in xrange(times)]
+	
+
+	outer=-1
+	while (outer<loops):
+		outer=bob_load_from_file('./bob/loop.txt','./bob/loop.txt','loop')
+		outer=int(outer)
+		#print 'loading'
+		if(outer==loops):
+			break
+			
+		for inner in xrange (miniTimes):
+			print int(outer*miniTimes+inner)
+			(a0,a1)=bitsTuples[outer*miniTimes+inner]
+			a=(a0,a1)
+			z0=randomly_choose_x0_x1(get_key_length()-len('true -'))
+			z1=randomly_choose_x0_x1(get_key_length()-len('true -'))
+			print ('a=('+str(a0)+','+str(a1))+')'
+			alice_are_2_bits_the_same(a,z0,z1)
+			print ''
+			print '----------------------------------------------------------'
+			time.sleep(0.01)
+			
+			
+			
 		
+			
+		
+	
+	
+	
+#	for i in xrange (get_num_of_running_times()):
+#		print '----------------------------------'+str(i)+'-------------------------------------'
+#		(a0,a1)=(choose_random_b(),choose_random_b())
+#		a=(a0,a1)
+#		z0=randomly_choose_x0_x1(get_key_length()-len('true -'))
+#		z1=randomly_choose_x0_x1(get_key_length()-len('true -'))
+#		print ('a=('+str(a0)+','+str(a1))+')'
+#		alice_are_2_bits_the_same(a,z0,z1)
+#		print ''
+			
 
 	'''
 	gateKind='xor'
@@ -546,7 +586,7 @@ def bob_load_from_file(loadFrom0,loadFrom1,what):
 	f0 = file.read() 
 	file.close()
 	
-	if(what=='port'):
+	if(what=='port' or what=='loop'):
 		return f0
 	
 	file = open(loadFrom1, "rb")
@@ -666,11 +706,8 @@ def bob_use_gate(socket,emptyGate,bobsBit,debug=False,pathToLoad=None):
 	ans=vec[0:-1]
 	ans=emptyGate.dec_vector(k_x,k_y,ans)
 	ans=emptyGate.get_output_from_decrypted_vector(ans)
-	try:
-		ans=ans[0]
-	except IndexError,e:
-		print bllllllllllllllllllllllllllllllllll
-		sys.exit(1) 
+	ans=ans[0]
+	
 		
 	return ans
 			
@@ -692,46 +729,68 @@ def bob_are_2_bits_the_same(socket,b0,b1):
 	ans=ans[0][0:-1]
 	return ans	
 			
-			
+
 		
 
 def bob_main(debug=False):
+	
+	times= get_num_of_running_times()
+	miniTimes=get_num_of_running_times_of_mini_times()
+	loops=times/miniTimes
 	socket=bob_initial(debug)
-	'''
-	gateKind='xor'
-	gate=garbled_gate(gateKind,0)
-	times=int(get_num_of_running_times())
-	vec=[]
-	printingVec=[]
-	print 'gate kind: '+gateKind
-	print '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
-
-	for i in xrange(times):	
-		#print 'itearation #'+str(i)
-		b=choose_random_b()
-		ans=bob_use_gate(socket,gate,b,pathToLoad='./alice/vec'+str(i)+'.txt')
-		#print("ans= "+str(ans))
-		#print ''
-		#print ('b='+str(b))
-		#print '-------------------------------------'
-		printingVec.append('i='+str(i)+':	'+'b='+str(b)+'	 ans='+str(ans))
-		vec.append((b,ans))
+	bitsTuples= [(choose_random_b(),choose_random_b()) for i in xrange(times)]
 	
-	for i in printingVec:
-		print i	
-	gate12=load_enc_gate_vactor('./alice/gate12.txt')
-	#print gate12	
-	#print ((vec[0][1]),vec[1][1])
+	save(0,'./bob/loop.txt')
 	
-	#decrypt the whole vector
-	ans= gate.dec_vector(vec[0][1][6:-1],vec[1][1][6:-1],gate12)
-	ans=gate.get_output_from_decrypted_vector(ans)
-	print ans[0][0:-1]
-	'''
-	(b0,b1)=(choose_random_b(),choose_random_b())
-	print ('b= ('+str(b0)+','+str(b1))+')'
-	ans=bob_are_2_bits_the_same(socket,b0,b1)
-	print 'ans = '+str(ans)
+	for outer in xrange(loops):
+		isLooping=True
+		
+		while(isLooping):
+			soFarOK = True
+			for inner in xrange (miniTimes):
+				print int(outer*miniTimes+inner)
+				(b0,b1)=bitsTuples[outer*miniTimes+inner]
+				print ('b= ('+str(b0)+','+str(b1))+')'
+				try:
+					ans=bob_are_2_bits_the_same(socket,b0,b1)
+					print 'ans = '+str(ans)
+					print '----------------------------------------------------------'
+					if(soFarOK and inner==miniTimes -2):
+						isLooping = False
+						save(outer+1,'./bob/loop.txt')
+						#print 'saving'+str(outer+1)
+				except IndexError:
+					soFarOK=False
+					print 'index error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+					
+		
+	
+	
+	
+	
+#	loop = True
+#	while(loop):
+#		for i in xrange(times):
+#			#ave(i,'./bob/nextItear.txt')
+#			print '----------------------------------'+str(i)+'-------------------------------------'
+#			(b0,b1)=bitsTuples[i]
+#			print ('b= ('+str(b0)+','+str(b1))+')'
+#			try:
+#				ans=bob_are_2_bits_the_same(socket,b0,b1)
+#				print 'ans = '+str(ans)
+#				if(i==times -1):
+#					loop = False
+#			except IndexError:
+#				print 'index error'
+			
+	
+		#try:
+		#	ans=bob_are_2_bits_the_same(socket,b0,b1)
+		#except IndexError,e:
+		#	print bllllllllllllllllllllllllllllllllll
+		#	sys.exit(1) 
+		#print 'ans = '+str(ans)
+	
 	
 		
 	#	k_y=bob_preform_OT(b,socket,debug)
@@ -794,15 +853,16 @@ if __name__ == '__main__':
 		debug= (((listOfArgs[2].split(","))[0]).split("'"))[1]
 		debug= (debug=='debug')
 		
-	for i in xrange(get_num_of_running_times()):	
-		print '--------------------------------------< '+str(i)+' >-------------------------------------'	
+	#for i in xrange(1):	
+	#	print '--------------------------------------< '+str(i)+' >-------------------------------------'	
 
-		if(name=='bob'):
-			bob_main(debug)
-		elif(name=='alice'):
-			alice_main(debug)
-		else:
-			print 'error happand'
+
+	if(name=='bob'):
+		bob_main(debug)
+	elif(name=='alice'):
+		alice_main(debug)
+	else:
+		print 'error happand'
 			
 		
 		
