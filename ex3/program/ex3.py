@@ -25,10 +25,10 @@ def getReadSizeFromBuffer():
 	return 1000	
 	
 def get_num_of_running_times():
-	return 128	
+	return 64	
 
 def get_num_of_running_times_of_mini_times():
-	return 16
+	return 8
 					
 #gets a string as input and returns is first bit	
 def get_first_bit_of_string(s):
@@ -747,7 +747,9 @@ def bob_main(debug=False):
 		
 		while(isLooping):
 			soFarOK = True
-			for inner in xrange (miniTimes):
+			inner=0
+			while(inner<miniTimes):
+			#for inner in xrange (miniTimes):
 				print int(outer*miniTimes+inner)
 				(b0,b1)=bitsTuples[outer*miniTimes+inner]
 				print ('b= ('+str(b0)+','+str(b1))+')'
@@ -758,10 +760,15 @@ def bob_main(debug=False):
 					if(soFarOK and inner==miniTimes -2):
 						isLooping = False
 						save(outer+1,'./bob/loop.txt')
-						#print 'saving'+str(outer+1)
+						#print 'saving!!!!!!!!!!!!!!!!!!!!!!!!!'+str(outer+1)
+					inner+=1	
 				except IndexError:
 					soFarOK=False
 					print 'index error!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+					print ''
+					time.sleep(0.3)
+					inner+=1	
+
 					
 		
 	
