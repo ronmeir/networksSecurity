@@ -276,11 +276,15 @@ def alice_use_gate(gateKind,aliceBit,z0,z1,gate=None,pathToSave=None):
 	
 #def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
+
 	z=(z0_s,z1_s)
 	
 	andGateKx_s=[]
 	andGateKy_s=[]
 	gateXor=[]
+	
+
+	
 	for i in xrange(2):
 		tmp=garbled_gate('xor',Z0=z[i][0],Z1=z[i][1])
 		tmp.set_x(a_s[i])
@@ -288,12 +292,19 @@ def alice_are_2_bits_the_same(a_s,z0_s,z1_s):
 		
 
 		#AND-gate inputs
-		andGateKx_s.append( z[0][i][len('true -'):-1]  )
-		andGateKy_s.append( z[1][i][len('true -'):-1]  )
+		andGateKx_s.append( z[0][i][len('true -'):]  )
+		andGateKy_s.append( z[1][i][len('true -'):]  )
+		(z0,z1)=randomly_choose_x0_x1(get_key_length()-len('true -'))
 	
-	andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=andGateKx_s,Ky=andGateKy_s)
+	#andGate=garbled_gate('and',Z0='false-',Z1='true -',Kx=andGateKx_s,Ky=andGateKy_s)
+	
+	andGate=garbled_gate('and',Z0=z0,Z1=z1,Kx=andGateKx_s,Ky=andGateKy_s)
+	
 	toSaveVec=andGate.get_garbled_output_vec()
 	save_enc_gate_vactor(toSaveVec,'./alice/gate12.txt')
+	print 'pprinting toSave: '+str(len(toSaveVec[0]))+' '+str(len(toSaveVec[1]))+' '+str(len(toSaveVec[2])) +' '+str(len(toSaveVec[3]))
+	
+	
 	'''
 	for i in xrange(2):
 		alice_use_gate('xor',a_s[i],z0_s[i],z1_s[i],gateXor[i],'./alice/vec'+str(i)+'.txt')
@@ -724,9 +735,11 @@ def bob_are_2_bits_the_same(socket,b0,b1):
 		vec.append(ans)
 		
 	gate12=load_enc_gate_vactor('./alice/gate12.txt')
-	ans= gate.dec_vector(vec[0][6:-1],vec[1][6:-1],gate12)
+	ans= gate.dec_vector(vec[0][6:],vec[1][6:],gate12)
+	#print ('lenVec0='+str(len(vec[0]))+   '   lenVec1='+str(len(vec[1]))        )
 	ans=gate.get_output_from_decrypted_vector(ans)
-	ans=ans[0][0:-1]
+	ans=ans[0][0:]
+	print 'prting ans: '+str(len(ans))
 	return ans	
 			
 
