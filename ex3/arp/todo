@@ -1,0 +1,4 @@
+1. add more output to let the user know about the action that is taken place
+2. look at the victims ARP-table, and see that there are {1->2->1} attributes for the (IP_GW,MAC_GW)
+3. as a victim, how would you protect youself aginst this attack?
+4. as an attack, how would you attack a victim that uses the segusted protection methods in (3)
