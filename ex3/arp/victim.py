@@ -56,9 +56,11 @@ def main():
 			printout(newString, GREEN)
 		else:
 			printout(newString, RED)
+
+		oldString=newString	
 				
 			
-		print "-------------------------------------------------------------------------------"
+		print "\n-------------------------------------------------------------------------------"
 		print ""
 		time.sleep(0.2)
 		
