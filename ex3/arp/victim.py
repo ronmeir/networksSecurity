@@ -11,7 +11,7 @@ def main():
 		print linux_cmd("cat /proc/net/arp")
 		print "-------------------------------------------------------------------------------"
 		print ""
-		time.sleep(0.2)
+		time.sleep(2)
 		
 	
 	
