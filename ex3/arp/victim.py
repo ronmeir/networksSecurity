@@ -42,7 +42,7 @@ def main():
 	print("in red")	
 	'''
 	
-	times=300
+	times=100
 	oldString=""
 	newString=""
 	for i in xrange(times):
@@ -62,7 +62,7 @@ def main():
 			
 		print "\n-------------------------------------------------------------------------------"
 		print ""
-		time.sleep(0.2)
+		time.sleep(1)
 		
 	
 	

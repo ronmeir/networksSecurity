@@ -77,7 +77,7 @@ def ARP_poisoning((routerIP,routerMAC),(victimIP,victimMAC),show=False):
 
 def main():
 	
-	times=30
+	times=8
 	interval=1.5
 	print'=====================================START======================================='	
 
