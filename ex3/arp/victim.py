@@ -13,8 +13,6 @@ def main():
 		print ""
 		time.sleep(2)
 		
-	
-	
 	return 0
 
 if __name__ == '__main__':
